@@ -61,7 +61,7 @@
   --font-heading: 'Montserrat Variable', 'Montserrat', sans-serif;
   --font-sans: 'Inter Variable', 'Inter', sans-serif;
 
-  --text-headline-lg: 32px;
+  /* --text-headline-lg: 32px;
   --text-headline-lg--line-height: 40px;
   --text-headline-lg--letter-spacing: -0.02em;
   --text-headline-lg--font-weight: 700;
@@ -96,10 +96,10 @@
 
   --text-label-sm: 12px;
   --text-label-sm--line-height: 14px;
-  --text-label-sm--font-weight: 500;
+  --text-label-sm--font-weight: 500; */
 
   /* ---- Spacing (8px base grid, 4px atomic unit) ---- */
-  --spacing-base: 4px;
+  /* --spacing-base: 4px;
   --spacing-xs: 8px;
   --spacing-sm: 16px;
   --spacing-md: 24px;
@@ -108,7 +108,7 @@
   --spacing-gutter: 16px;
   --spacing-margin-mobile: 16px;
 
-  --container-max-width: 1200px;
+  --container-max-width: 1200px; */
 
   /* ---- Elevation (ambient shadows tinted with brand navy) ---- */
   --shadow-level-1: 0px 4px 12px rgba(15, 45, 77, 0.05);
@@ -153,6 +153,8 @@
   --radius-3xl: 2rem;
   --radius-4xl: 2.5rem;
   --radius-full: 9999px;
+
+  --animate-marquee: marquee 60s linear infinite;
 }
 
 :root {
@@ -251,7 +253,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply font-sans bg-surface-container-lowest text-on-surface antialiased min-h-screen;
   }
 
   h1,
@@ -290,6 +292,16 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #d18e0f;
   }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(-50%);
+    }
+
+    to {
+      transform: translateX(0);
+    }
+  }
 }
 
 @layer utilities {
@@ -307,6 +319,9 @@
   }
 
   .hero-gradient {
-    background: linear-gradient(135deg, rgba(244, 247, 249, 1) 0%, rgba(226, 232, 240, 0.5) 100%);
+    background: linear-gradient(135deg,
+        var(--color-surface) 0%,
+        var(--color-surface-container-low) 55%,
+        #ffffff 100%);
   }
 }

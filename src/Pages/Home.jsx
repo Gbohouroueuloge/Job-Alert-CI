@@ -2,16 +2,15 @@ import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { animate, motion, useInView } from "framer-motion"
 import {
-  ArrowRight, BadgeCheck, Bell, Check, Clock, Filter, Mail,Fingerprint, 
-  Radar, Send, SlidersHorizontal, Search,MessageCircleQuestion, Quote, 
-  ArrowUpRight,Calculator,Code2,Handshake,HardHat,MapPin,Stethoscope,Users,Zap,
+  ArrowRight, BadgeCheck, Bell, Check, Clock, Fingerprint,
+  Radar, Send, SlidersHorizontal, MessageCircleQuestion, Quote,
+  ArrowUpRight, Calculator, Code2, Handshake, HardHat, MapPin, Stethoscope, Users, Zap,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
@@ -521,7 +520,7 @@ const Hero = () => {
                     <span className="font-medium text-muted-foreground">&lt;bonjour@jobalert.ci&gt;</span>
                   </p>
                   <p className="truncate text-[11px] text-muted-foreground">
-                    Objet : Votre récapitulatif du jour — 47 offres
+                    Objet : Votre récapitulatif du jour (47 offres)
                   </p>
                 </div>
                 <span className="shrink-0 text-[11px] font-semibold text-muted-foreground">08:00</span>
@@ -626,7 +625,7 @@ const HowItWorks = () => (
         />
         <span className="hidden items-center gap-2 rounded-full border border-outline-variant/50 bg-white px-4 py-2 text-xs font-semibold text-on-surface-variant md:inline-flex">
           <Clock className="size-3.5 text-brand-orange" />
-          100 % automatique — 0 action de votre part
+          100 % automatique / 0 action de votre part
         </span>
       </div>
 
@@ -675,12 +674,6 @@ const HowItWorks = () => (
                 >
                   <s.icon className="size-6" strokeWidth={2} />
                 </span>
-                {i === 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex size-3">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex size-3 rounded-full border-2 border-white bg-emerald-500" />
-                  </span>
-                )}
               </div>
 
               {/* Contenu */}
@@ -741,7 +734,7 @@ const HowItWorks = () => (
       >
         <p className="text-sm text-on-surface-variant">
           <strong className="font-semibold text-brand-navy">Et vous, pendant ce temps ?</strong> Rien.
-          C'est exactement le but — l'information vient à vous, jamais l'inverse.
+          C'est exactement le but, l'information vient à vous, jamais l'inverse.
         </p>
         <Link
           to="/comment-ca-marche"
@@ -766,7 +759,7 @@ const RecentOffers = () => (
               Ce matin, <span className="text-brand-orange">47 offres</span> sont arrivées.
             </>
           }
-          sub="Un aperçu de la collecte — les autres vous attendent dans le récapitulatif de 8h00."
+          sub="Un aperçu de la collecte. Les autres vous attendent dans le récapitulatif de 8h00."
         />
         <Link
           to="/offres"
@@ -777,141 +770,139 @@ const RecentOffers = () => (
         </Link>
       </div>
 
-      <TooltipProvider delayDuration={150}>
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-          {/* Feed d'offres */}
-          <div>
-            <ul className="flex flex-col gap-2.5">
-              {OFFRES.map((o, i) => (
-                <motion.li
-                  key={o.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.45, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+      <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Feed d'offres */}
+        <div>
+          <ul className="flex flex-col gap-2.5">
+            {OFFRES.map((o, i) => (
+              <motion.li
+                key={o.id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.45, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <Link
+                  to={`/offres/${o.id}`}
+                  className="group flex items-center gap-4 rounded-xl border border-outline-variant/40 bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-orange/50 hover:shadow-hover"
                 >
-                  <Link
-                    to={`/offres/${o.id}`}
-                    className="group flex items-center gap-4 rounded-xl border border-outline-variant/40 bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-orange/50 hover:shadow-hover"
-                  >
-                    <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-lg", o.tile)}>
-                      <o.icon className="size-5" strokeWidth={2} />
-                    </span>
+                  <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-lg", o.tile)}>
+                    <o.icon className="size-5" strokeWidth={2} />
+                  </span>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="truncate font-heading text-[15px] font-bold text-brand-navy transition-colors duration-300 group-hover:text-brand-orange">
-                          {o.titre}
-                        </h3>
-                        {o.fresh && (
-                          <span className="hidden shrink-0 rounded-full bg-brand-orange px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:inline">
-                            Nouveau
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-muted-foreground">
-                        <span className="font-medium text-on-surface-variant">{o.entreprise}</span>
-                        <span aria-hidden>·</span>
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="size-3" />
-                          {o.ville}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="truncate font-heading text-[15px] font-bold text-brand-navy transition-colors duration-300 group-hover:text-brand-orange">
+                        {o.titre}
+                      </h3>
+                      {o.fresh && (
+                        <span className="hidden shrink-0 rounded-full bg-brand-orange px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:inline">
+                          Nouveau
                         </span>
-                        <span aria-hidden>·</span>
-                        <span>{o.contrat}</span>
-                      </p>
+                      )}
                     </div>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="hidden shrink-0 cursor-default items-center gap-1.5 rounded-full border border-outline-variant/50 bg-surface-container-low/60 px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant md:inline-flex">
-                          {/* {o.linkedin && <SiLinkedin className="size-3 text-[#0A66C2]" />} */}
-                          {o.source}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">Collectée sur {o.source} à 6h02</TooltipContent>
-                    </Tooltip>
-
-                    <ArrowUpRight className="size-4 shrink-0 text-outline-variant transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-orange" />
-                  </Link>
-                </motion.li>
-              ))}
-            </ul>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="mt-5 text-center md:hidden"
-            >
-              <Link
-                to="/offres"
-                className="inline-flex items-center gap-2 text-sm font-bold text-brand-navy transition-colors hover:text-brand-orange"
-              >
-                Voir les 47 offres du jour
-                <ArrowRight className="size-4" />
-              </Link>
-            </motion.div>
-          </div>
-
-          {/* Répartition du jour */}
-          <motion.aside
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="relative flex flex-col overflow-hidden rounded-xl bg-brand-navy p-6 text-white"
-          >
-            <div className="pointer-events-none absolute inset-0 bg-pattern opacity-20" aria-hidden />
-            <div
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(245,166,35,0.16),transparent_55%)]"
-              aria-hidden
-            />
-
-            <div className="relative flex flex-1 flex-col">
-              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/90">
-                <Zap className="size-3 text-brand-orange" />
-                Run du jour · terminé
-              </span>
-
-              <p className="mt-5 font-heading text-5xl font-black leading-none">47</p>
-              <p className="mt-1.5 text-sm text-white/70">nouvelles offres ce matin, réparties ainsi :</p>
-
-              <div className="mt-6 space-y-3.5">
-                {REPARTITION.map((b, i) => (
-                  <div key={b.label}>
-                    <div className="flex items-baseline justify-between text-[11px] font-semibold">
-                      <span className="text-white/80">{b.label}</span>
-                      <span className="text-white/50">{b.count}</span>
-                    </div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${b.pct}%` }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.9, delay: 0.3 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                        className={cn("h-full rounded-full", b.color)}
-                      />
-                    </div>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-muted-foreground">
+                      <span className="font-medium text-on-surface-variant">{o.entreprise}</span>
+                      <span aria-hidden>·</span>
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="size-3" />
+                        {o.ville}
+                      </span>
+                      <span aria-hidden>·</span>
+                      <span>{o.contrat}</span>
+                    </p>
                   </div>
-                ))}
-              </div>
 
-              <p className="mt-6 border-t border-white/10 pt-4 text-[11px] leading-relaxed text-white/50">
-                Vous ne recevez que vos filières. Jamais le reste.
-              </p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="hidden shrink-0 cursor-default items-center gap-1.5 rounded-full border border-outline-variant/50 bg-surface-container-low/60 px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant md:inline-flex">
+                        {/* {o.linkedin && <SiLinkedin className="size-3 text-[#0A66C2]" />} */}
+                        {o.source}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Collectée sur {o.source} à 6h02</TooltipContent>
+                  </Tooltip>
 
-              <Link
-                to="/inscription"
-                className="group mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-brand-orange px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:brightness-110"
-              >
-                <Bell className="size-4 transition-transform duration-300 group-hover:rotate-12" />
-                Recevoir ma sélection à 8h00
-              </Link>
-            </div>
-          </motion.aside>
+                  <ArrowUpRight className="size-4 shrink-0 text-outline-variant transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-orange" />
+                </Link>
+              </motion.li>
+            ))}
+          </ul>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-5 text-center md:hidden"
+          >
+            <Link
+              to="/offres"
+              className="inline-flex items-center gap-2 text-sm font-bold text-brand-navy transition-colors hover:text-brand-orange"
+            >
+              Voir les 47 offres du jour
+              <ArrowRight className="size-4" />
+            </Link>
+          </motion.div>
         </div>
-      </TooltipProvider>
+
+        {/* Répartition du jour */}
+        <motion.aside
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          className="relative flex flex-col overflow-hidden rounded-xl bg-brand-navy p-6 text-white"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-pattern opacity-20" aria-hidden />
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(245,166,35,0.16),transparent_55%)]"
+            aria-hidden
+          />
+
+          <div className="relative flex flex-1 flex-col">
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/90">
+              <Zap className="size-3 text-brand-orange" />
+              Run du jour · terminé
+            </span>
+
+            <p className="mt-5 font-heading text-5xl font-black leading-none">47</p>
+            <p className="mt-1.5 text-sm text-white/70">nouvelles offres ce matin, réparties ainsi :</p>
+
+            <div className="mt-6 space-y-3.5">
+              {REPARTITION.map((b, i) => (
+                <div key={b.label}>
+                  <div className="flex items-baseline justify-between text-[11px] font-semibold">
+                    <span className="text-white/80">{b.label}</span>
+                    <span className="text-white/50">{b.count}</span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${b.pct}%` }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.9, delay: 0.3 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                      className={cn("h-full rounded-full", b.color)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-6 border-t border-white/10 pt-4 text-[11px] leading-relaxed text-white/50">
+              Vous ne recevez que vos filières. Jamais le reste.
+            </p>
+
+            <Link
+              to="/inscription"
+              className="group mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-brand-orange px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:brightness-110"
+            >
+              <Bell className="size-4 transition-transform duration-300 group-hover:rotate-12" />
+              Recevoir ma sélection à 8h00
+            </Link>
+          </div>
+        </motion.aside>
+      </div>
     </div>
   </section>
 )
@@ -963,7 +954,7 @@ const FaqSection = () => (
         <Accordion type="single" collapsible defaultValue="q1" className="w-full">
           {QUESTIONS.map((q) => (
             <AccordionItem key={q.id} value={q.id} className="border-outline-variant/40">
-              <AccordionTrigger className="py-5 text-left font-heading text-[15px] font-bold text-brand-navy transition-colors duration-200 hover:text-brand-orange">
+              <AccordionTrigger className="py-5 text-left hover:no-underline font-heading text-[15px] font-bold text-brand-navy transition-colors duration-200 hover:text-brand-orange">
                 {q.question}
               </AccordionTrigger>
               <AccordionContent className="pb-5 text-sm leading-relaxed text-on-surface-variant">
@@ -977,7 +968,6 @@ const FaqSection = () => (
   </section>
 )
 
-/* ── Carte vedette (navy, plus large — donne le rythme du défilement) ── */
 const CarteVedette = ({ t }) => (
   <figure className="relative flex w-[320px] shrink-0 flex-col overflow-hidden rounded-xl bg-brand-navy p-7 text-white sm:w-115 sm:p-8">
     <div className="pointer-events-none absolute inset-0 bg-pattern opacity-20" aria-hidden />
@@ -1109,7 +1099,7 @@ const Testimonials = () => (
 
     {/* Pied de section */}
     <div className="mx-auto mt-10 flex max-w-7xl flex-col items-center justify-center gap-2.5 px-6 text-center sm:flex-row sm:gap-4">
-      <p className="text-xs text-muted-foreground">Survolez le carrousel pour le mettre en pause</p>
+      <p className="text-xs text-muted-foreground">Qu'est ce que vous attendez ?</p>
       <span className="hidden size-1 rounded-full bg-outline-variant sm:block" aria-hidden />
       <Link
         to="/inscription"

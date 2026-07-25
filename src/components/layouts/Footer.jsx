@@ -280,8 +280,8 @@ const Footer = () => {
             className="flex flex-col gap-4 sm:col-span-2 lg:col-span-4"
           >
             <div className="flex items-center gap-2.5">
-              <div className="h-8 md:h-9">
-                <img src="/logo.svg" alt="JobAlert CI" className="h-full w-auto object-contain" />
+              <div className="h-8 md:h-9 bg-white rounded-lg">
+                <img src="/logo2.svg" alt="JobAlert CI" className="h-full w-auto object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="font-heading text-xl font-black leading-tight text-white">JobAlert CI</span>
@@ -291,7 +291,7 @@ const Footer = () => {
 
             <p className="max-w-sm text-sm leading-relaxed text-white/65">
               Votre boussole vers l'emploi en Côte d'Ivoire. Chaque matin à 8h00, les offres de vos
-              filières arrivent directement dans votre boîte mail — sans rien à faire.
+              filières arrivent directement dans votre boîte mail sans rien à faire.
             </p>
 
             {/* Statut de la collecte */}
@@ -404,7 +404,12 @@ const Footer = () => {
       {/* ═══ Barre basse ═════════════════════════════════════════════ */}
       <div className="relative border-t border-white/10 bg-[#0B2440]">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-6 text-xs text-white/45 md:flex-row md:px-12">
-          <p>© {new Date().getFullYear()} JobAlert CI — Tous droits réservés.</p>
+          <p className="flex items-center gap-2">
+            &copy; 2026 JobAlert CI
+            <span className="hidden size-1 rounded-full bg-outline-variant/20 sm:block" aria-hidden />
+            Tous droits réservés.
+          </p>
+
 
           <p className="hidden items-center gap-2 lg:flex">
             <Radar className="size-3.5 text-brand-orange/70" />

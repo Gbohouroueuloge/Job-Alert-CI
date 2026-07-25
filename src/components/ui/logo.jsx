@@ -6,7 +6,7 @@ export default function Logo() {
       <div className="flex flex-col items-center">
         <div className="h-7 md:h-9 sm:w-auto">
           <img
-            src="/logo.svg"
+            src="/logo2.svg"
             alt="JobAlert CI Logo"
             className="h-full object-contain"
             loading="eager"

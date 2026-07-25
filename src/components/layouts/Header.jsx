@@ -512,7 +512,7 @@ const Header = () => {
                         </li>
                         <li className="flex items-start gap-2.5">
                           <BadgeCheck className="mt-0.5 size-4 shrink-0 text-brand-orange" />
-                          Dédoublonnage automatique — zéro doublon envoyé
+                          Dédoublonnage automatique : zéro doublon envoyé
                         </li>
                       </ul>
                       <Link

@@ -4,18 +4,17 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import Header from "./components/layouts/Header";
 import Footer from "./components/layouts/Footer";
 
+const Layout = () => {
+  return (
+    <>
+      <Header />
+      <Outlet />
+      <Footer />
+    </>
+  )
+}
+
 const App = () => {
-
-  const Layout = () => {
-    return (
-      <>
-        <Header />
-        <Outlet />
-        <Footer />
-      </>
-    )
-  }
-
   return (
     <TooltipProvider>
       <BrowserRouter>

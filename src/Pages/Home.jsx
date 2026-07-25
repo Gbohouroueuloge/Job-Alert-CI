@@ -7,7 +7,9 @@ import {
   ArrowUpRight, Calculator, Code2, Handshake, HardHat, MapPin, Stethoscope, Users, Zap,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Seo from "@/components/seo/Seo"
 import { Badge } from "@/components/ui/badge"
+import { homeSeo } from "@/lib/seo"
 import {
   Tooltip,
   TooltipContent,
@@ -1114,13 +1116,16 @@ const Testimonials = () => (
 
 const Home = () => {
   return (
-    <main>
-      <Hero />
-      <HowItWorks />
-      <RecentOffers />
-      <FaqSection />
-      <Testimonials />
-    </main>
+    <>
+      <Seo {...homeSeo} />
+      <main>
+        <Hero />
+        <HowItWorks />
+        <RecentOffers />
+        <FaqSection />
+        <Testimonials />
+      </main>
+    </>
   )
 }
 

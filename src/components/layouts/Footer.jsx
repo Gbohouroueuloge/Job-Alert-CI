@@ -44,9 +44,9 @@ const SUPPORT_FOOTER = [
 ]
 
 const socialsLinks = [
-  { icon: SiFacebook, color: "hover:bg-blue-600/20 hover:text-blue-500 hover:border-blue-500/50", link: "https://facebook.com" },
-  { icon: SiInstagram, color: "hover:bg-pink-600/20 hover:text-pink-500 hover:border-pink-500/50", link: "https://instagram.com" },
-  { icon: SiX, color: "hover:bg-slate-900 hover:text-white hover:border-white/30", link: "https://x.com" },
+  { label: "Facebook", icon: SiFacebook, color: "hover:bg-blue-600/20 hover:text-blue-500 hover:border-blue-500/50", link: "https://facebook.com" },
+  { label: "Instagram", icon: SiInstagram, color: "hover:bg-pink-600/20 hover:text-pink-500 hover:border-pink-500/50", link: "https://instagram.com" },
+  { label: "X", icon: SiX, color: "hover:bg-slate-900 hover:text-white hover:border-white/30", link: "https://x.com" },
 ];
 
 const SOURCES = [
@@ -71,6 +71,9 @@ const SocialLink = ({ social }) => {
   return (
     <motion.a
       href={social.link}
+      aria-label={`Suivre JobAlert CI sur ${social.label}`}
+      target="_blank"
+      rel="noopener noreferrer"
       whileHover={{ y: -4, scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       className={`w-10 h-10 rounded-xl bg-white/5 border border-slate-800 flex items-center justify-center transition-colors duration-300 shadow-md text-slate-400 ${social.color}`}
@@ -416,7 +419,7 @@ const Footer = () => {
             Offres collectées sur
             {SOURCES.map((s, i) => (
               <a
-                href={s.link} key={i} target="_blanc"
+                href={s.link} key={i} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 font-semibold text-white/60 hover:text-brand-orange"
               >
                 {s.src}

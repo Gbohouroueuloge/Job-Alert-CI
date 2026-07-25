@@ -1,0 +1,24 @@
+{
+  "name": "JobAlert CI",
+  "short_name": "JobAlert CI",
+  "description": "Alertes emploi quotidiennes et gratuites en Cote d'Ivoire.",
+  "lang": "fr-CI",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0F2D4D",
+  "icons": [
+    {
+      "src": "/logo2.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo2.ico",
+      "sizes": "48x48 64x64 128x128 256x256",
+      "type": "image/x-icon"
+    }
+  ]
+}

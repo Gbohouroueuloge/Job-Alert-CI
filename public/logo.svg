@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1402" height="1122">
-<defs><clipPath id="round"><rect x="0" y="0" width="1402" height="1122" rx="561" ry="561"/></clipPath></defs>
+<defs><clipPath id="round"><rect x="0" y="0" width="1402" height="1122" rx="300" ry="300"/></clipPath></defs>
 <g clip-path="url(#round)">
 <path d="M0 0 C462.66 0 925.32 0 1402 0 C1402 370.26 1402 740.52 1402 1122 C939.34 1122 476.68 1122 0 1122 C0 751.74 0 381.48 0 0 Z " fill="#FEFDFE" transform="translate(0,0)"/>
 <g transform="translate(701,561) scale(1.5) translate(-701,-561)">

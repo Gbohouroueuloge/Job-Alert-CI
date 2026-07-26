@@ -264,13 +264,13 @@ const fadeUp = {
 /* Compteur animé au scroll */
 const CountUp = ({ to, suffix = "" }) => {
   const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: "-38px" })
+  const inView = useInView(ref, { once: true, margin: "-60px" })
   const [value, setValue] = useState(0)
 
   useEffect(() => {
     if (!inView) return
     const controls = animate(0, to, {
-      duration: 1.8,
+      duration: 1.3,
       ease: [0.22, 1, 0.36, 1],
       onUpdate: (v) => setValue(Math.round(v)),
     })
@@ -807,7 +807,7 @@ const RecentOffers = () => (
                     "group flex items-center gap-4 rounded-xl border border-outline-variant/40 bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-orange/50 hover:shadow-hover", o.hover
                   )}
                 >
-                  <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-lg", o.tile)}>
+                  <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-lg transition-all duration-500", o.tile)}>
                     <o.icon className="size-5" strokeWidth={2} />
                   </span>
 

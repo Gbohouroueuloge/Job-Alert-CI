@@ -3,23 +3,12 @@ import {
   motion,
   useScroll,
   useSpring,
+  AnimatePresence
 } from "framer-motion"
 import { Link } from "react-router-dom"
 import {
-  ArrowRight,
-  BadgeCheck,
-  Bell,
-  Check,
-  ChevronDown,
-  Clock,
-  Database,
-  Fingerprint,
-  Mail,
-  Radar,
-  RefreshCw,
-  Send,
-  ShieldAlert,
-  SlidersHorizontal,
+  ArrowRight, BadgeCheck, Bell, Check, ChevronDown, Clock, Filter, MailCheck,
+  Database, Fingerprint, Radar, RefreshCw, Send, ShieldAlert, SlidersHorizontal,
 } from "lucide-react"
 import { FaLinkedin } from "react-icons/fa"
 import { cn } from "@/lib/utils"
@@ -28,7 +17,6 @@ import { howItWorksSeo } from "@/lib/seo"
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
@@ -43,26 +31,20 @@ import { getImgSource, getUrlSource } from "@/utils/utilsSource"
   DONNÉES
 ════════════════════════════════════════════════════════════════════ */
 
-const ETAPES_HERO = [
-  {
-    time: "06h00", icon: Radar, title: "Collecte",
-    desc: "4 scrapers parcourent EmploiDakar CI, GoAfrica, Novojob et LinkedIn.", status: "ok"
-  },
-  {
-    time: "06h15", icon: Fingerprint, title: "Dédoublonnage",
-    desc: "Chaque offre reçoit une empreinte unique — jamais renvoyée deux fois.", status: "ok"
-  },
-  {
-    time: "07h00", icon: SlidersHorizontal, title: "Filtrage",
-    desc: "Les nouveautés sont croisées avec vos 1 à 3 filières métiers.", status: "live"
-  },
-  {
-    time: "08h00", icon: Send, title: "Envoi",
-    desc: "Votre récapitulatif personnalisé part vers votre boîte mail.", status: "todo"
-  },
-]
-
 const REASSURANCES_HERO = ["Gratuit pour toujours", "Sans mot de passe", "Désinscription en 1 clic"]
+
+const STEPS = [
+  { time: "06h00", icon: Radar, title: "Collecte", desc: "4 scrapers parcourent les sites sources en parallèle, la panne d'une source ne bloque jamais les autres.", hex: "#F5A623", metric: "+42 offres brutes collectées" },
+  { time: "06h45", icon: Fingerprint, title: "Dédoublonnage", desc: "Chaque annonce reçoit un hash unique calculé depuis son lien.", hex: "#0F2D4D", metric: "12 doublons écartés" },
+  { time: "07h15", icon: Filter, title: "Filtrage", desc: "Les offres sont matchées avec vos 1 à 3 filières métiers.", hex: "#2ECC71", metric: "3 offres matchées pour vous" },
+  { time: "08h00", icon: MailCheck, title: "Envoi", desc: "Votre récapitulatif personnalisé part par email, 3 tentatives en cas de panne SMTP.", hex: "#F5A623", metric: "Livré à 08h00:00" },
+];
+
+const EMAIL_JOBS = [
+  { t: "Développeur Full-Stack React / Node", e: "Digital Hub CI" },
+  { t: "Ingénieur DevOps Cloud", e: "Wave Mobile Money" },
+  { t: "Tech Lead Java", e: "SGI Africa" },
+];
 
 const SOURCES_RUN = [
   { nom: "EmploiDakar CI", heure: "6h01" },
@@ -119,121 +101,8 @@ const fadeUp = {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-  HERO — le pipeline vivant (inchangé)
+  HERO — le pipeline vivant
 ════════════════════════════════════════════════════════════════════ */
-
-const StatusChip = ({ status }) => {
-  if (status === "ok")
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-        <Check className="size-2.5" strokeWidth={3.5} />
-        Terminé
-      </span>
-    )
-  if (status === "live")
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange/10 px-2 py-0.5 text-[10px] font-bold text-orange-700">
-        <span className="relative flex size-1.5">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-orange opacity-75" />
-          <span className="relative inline-flex size-1.5 rounded-full bg-brand-orange" />
-        </span>
-        En cours
-      </span>
-    )
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-surface-container px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
-      <Clock className="size-2.5" />
-      Programmé
-    </span>
-  )
-}
-
-const RunProgress = () => {
-  const [progress, setProgress] = useState({
-    percentage: 0,
-    timeLeft: "Calcul...",
-  });
-
-  useEffect(() => {
-    const calculateTime = () => {
-      const now = new Date();
-
-      // On définit le début (start) et la fin (target) du cycle
-      let start = new Date(now);
-      start.setHours(8, 0, 0, 0); // 8h00 du matin
-
-      let target = new Date(now);
-      target.setHours(8, 0, 0, 0);
-
-      // Logique pour savoir si on est avant ou après 8h aujourd'hui
-      if (now.getHours() >= 8) {
-        // Le prochain envoi est demain à 8h, le précédent était aujourd'hui à 8h
-        target.setDate(target.getDate() + 1);
-      } else {
-        // Le prochain envoi est aujourd'hui à 8h, le précédent était hier à 8h
-        start.setDate(start.getDate() - 1);
-      }
-
-      const totalDuration = target.getTime() - start.getTime(); // Durée totale d'un cycle (24h)
-      const elapsed = now.getTime() - start.getTime(); // Temps écoulé depuis le dernier 8h00
-      const remaining = target.getTime() - now.getTime(); // Temps avant le prochain 8h00
-
-      // Calcul du pourcentage (borné entre 0 et 100)
-      const rawPercentage = (elapsed / totalDuration) * 100;
-      const percentage = Math.max(0, Math.min(100, rawPercentage));
-
-      // Conversion du temps restant en heures et minutes
-      const hoursLeft = Math.floor(remaining / (1000 * 60 * 60));
-      const minutesLeft = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-
-      setProgress({
-        percentage,
-        timeLeft: `${hoursLeft}h ${minutesLeft}m restantes`,
-      });
-    };
-
-    // 1. Calcul immédiat au montage du composant
-    calculateTime();
-
-    // 2. Mise à jour automatique toutes les minutes (60000 millisecondes)
-    const interval = setInterval(calculateTime, 60000);
-
-    // Nettoyage de l'intervalle si le composant est démonté
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="border-t border-outline-variant/40 bg-surface-container-low/40 px-5 py-4">
-      <div className="flex items-baseline justify-between text-[11px] font-semibold">
-        <span className="text-muted-foreground">Progression du run</span>
-        {/* Affichage dynamique du pourcentage arrondi */}
-        <span className="font-heading text-brand-navy">
-          {Math.round(progress.percentage)} %
-        </span>
-      </div>
-
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-container">
-        <motion.div
-          initial={{ width: "0%" }}
-          animate={{ width: `${progress.percentage}%` }} // La largeur s'adapte à l'état
-          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-          className="h-full rounded-full bg-brand-orange"
-        />
-      </div>
-
-      <div className="mt-2.5 flex items-center justify-between text-[11px] text-muted-foreground">
-        <p className="flex items-center gap-1.5">
-          <Mail className="size-3 text-brand-orange" />
-          Rendez-vous à 8h00
-        </p>
-        {/* Affichage du temps restant */}
-        <span className="font-medium text-brand-orange/80">
-          Il reste {progress.timeLeft}
-        </span>
-      </div>
-    </div>
-  );
-}
 
 const PipelineCard = () => {
   const dateFr = (() => {
@@ -241,107 +110,222 @@ const PipelineCard = () => {
     return d.charAt(0).toUpperCase() + d.slice(1)
   })()
 
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => (t + 1) % 6), 1700);
+    return () => clearInterval(id);
+  }, []);
+  const delivered = tick >= 4;
+  const stateOf = (i) => (delivered || tick > i ? "done" : tick === i ? "active" : "pending");
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 36, rotate: 1.5 }}
-      animate={{ opacity: 1, y: 0, rotate: 0 }}
-      transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="relative mx-auto w-full max-w-md md:max-w-none"
+      initial={{ opacity: 0, y: 32, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
+      className="relative"
     >
-      <div className="absolute -inset-8 rounded-full bg-brand-orange/10 blur-3xl" aria-hidden />
-      <div className="absolute inset-0 translate-x-4 translate-y-5 rotate-2 overflow-hidden rounded-2xl bg-brand-navy" aria-hidden>
-        <div className="absolute inset-0 bg-pattern opacity-20" />
-      </div>
+      {/* Chips sources flottantes (position absolue → aucun impact layout) */}
+      {[
+        { label: "EmploiDakar CI", hex: "#F5A623", cls: "-left-3 top-8 md:-left-6", dur: 4.4, delay: 0 },
+        { label: "LinkedIn", hex: "#0A66C2", cls: "-right-2 top-24 md:-right-5", dur: 5.2, delay: 0.8, icon: true },
+        { label: "Novojob", hex: "#0F2D4D", cls: "-left-2 bottom-28 md:-left-7", dur: 4.8, delay: 1.4 },
+        { label: "GoAfrica", hex: "#2ECC71", cls: "-right-2 bottom-10 md:-right-4", dur: 5.6, delay: 0.4 },
+      ].map((chip) => (
+        <motion.div
+          key={chip.label}
+          className={cn(
+            "absolute z-20 hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold shadow-hover md:flex",
+            chip.cls
+          )}
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: chip.dur, repeat: Infinity, ease: "easeInOut", delay: chip.delay }}
+        >
+          {chip.icon
+            ? <FaLinkedin className="size-3" style={{ color: chip.hex }} />
+            : <img src={getImgSource(chip.label)} alt={chip.label} className="size-5" />}
+          {chip.label}
+        </motion.div>
+      ))}
 
-      <motion.span
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1, y: [0, -7, 0] }}
-        transition={{
-          delay: 1, opacity: { duration: 0.4 }, scale: { duration: 0.4 },
-          y: { duration: 4.6, repeat: Infinity, ease: "easeInOut" }
-        }}
-        className="absolute -top-4 left-5 z-20 inline-flex -rotate-3 items-center gap-1.5 rounded-full bg-brand-navy px-3.5 py-1.5 text-[11px] font-bold text-white shadow-lg sm:-left-5"
-      >
-        <Radar className="size-3 text-brand-orange" />
-        4 sources scannées
-      </motion.span>
-
-      <motion.span
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1, y: [0, -6, 0] }}
-        transition={{
-          delay: 1.2, opacity: { duration: 0.4 }, scale: { duration: 0.4 },
-          y: { duration: 5.2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }
-        }}
-        className="absolute -bottom-4 right-8 z-20 inline-flex rotate-2 items-center gap-1.5 rounded-full border border-outline-variant/50 bg-white px-3.5 py-1.5 text-[11px] font-bold text-on-surface shadow-hover"
-      >
-        <BadgeCheck className="size-3.5 text-emerald-500" />
-        0 doublon envoyé
-      </motion.span>
-
-      <div className="relative overflow-hidden rounded-2xl border border-outline-variant/40 bg-white shadow-[0_24px_48px_-16px_rgba(15,45,77,0.22)]">
-        <div className="flex items-center justify-between gap-3 border-b border-outline-variant/40 bg-surface-container-low/60 px-5 py-4">
-          <div>
-            <p className="font-heading text-sm font-bold text-brand-navy">La chaîne du jour</p>
-            <p className="text-[11px] text-muted-foreground">{dateFr}</p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-700">
-            <span className="relative flex size-1.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-orange opacity-75" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-brand-orange" />
+      {/* Console « run quotidien » — hauteur constante du montage au démontage */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-hover">
+        {/* En-tête console */}
+        <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            Run en cours
-          </span>
+            <span className="text-xs font-bold uppercase tracking-wider">Run quotidien</span>
+          </div>
+          <span className="font-mono text-xs text-muted-foreground">{dateFr}</span>
         </div>
 
-        <div className="relative px-5 py-6">
-          <div className="absolute bottom-10 left-10.25 top-10 w-0.5 bg-outline-variant/40" aria-hidden />
-          <motion.div
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ duration: 1.6, delay: 0.8, ease: "easeInOut" }}
-            className="absolute bottom-10 left-10.25 top-10 w-0.5 origin-top bg-brand-orange"
-            aria-hidden
-          />
-          <ol>
-            {ETAPES_HERO.map((e, i) => (
-              <motion.li
-                key={e.time}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.45, delay: 0.6 + i * 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="relative flex gap-4"
-              >
-                <span
+        {/* Pipeline */}
+        <div className="p-5 sm:p-6">
+          {STEPS.map((s, i) => {
+            const st = stateOf(i);
+            return (
+              <div key={s.title} className="relative flex gap-4 pb-7 last:pb-0">
+                {/* Connecteur vertical */}
+                {i < STEPS.length - 1 && (
+                  <span className="absolute left-5 top-11 h-[calc(100%-2.5rem)] w-0.5 -translate-x-1/2 rounded bg-border" aria-hidden>
+                    <motion.span
+                      className="block w-full origin-top rounded bg-brand-orange"
+                      initial={false}
+                      animate={{ scaleY: st === "done" ? 1 : 0 }}
+                      transition={{ duration: 0.5, ease: "easeInOut" }}
+                      style={{ height: "100%" }}
+                    />
+                  </span>
+                )}
+
+                {/* Nœud */}
+                <div
                   className={cn(
-                    "relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full border-2 bg-white",
-                    e.status === "ok" && "border-emerald-500/40 text-emerald-600",
-                    e.status === "live" && "border-brand-orange bg-brand-orange text-white shadow-[0_0_0_6px_rgba(245,166,35,0.15)]",
-                    e.status === "todo" && "border-dashed border-outline-variant text-muted-foreground"
+                    "relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-500",
+                    st === "pending" && "border-border bg-muted text-muted-foreground",
+                    st === "active" && "scale-110 border-brand-orange bg-brand-orange/10 text-brand-orange",
+                    st === "done" && "border-transparent text-white"
                   )}
+                  style={st === "done" ? { backgroundColor: s.hex } : undefined}
                 >
-                  <e.icon className="size-5" strokeWidth={2} />
-                  {e.status === "live" && (
-                    <span className="absolute -right-0.5 -top-0.5 flex size-2.5">
-                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex size-2.5 rounded-full border-2 border-white bg-emerald-500" />
-                    </span>
+                  {st === "done" ? <Check className="h-4 w-4" /> : <s.icon className="h-4.5 w-4.5" />}
+                  {st === "active" && (
+                    <span className="absolute inset-0 animate-ping rounded-full border-2 border-brand-orange opacity-50" aria-hidden />
                   )}
-                </span>
-                <div className={cn("min-w-0 flex-1", i < ETAPES_HERO.length - 1 && "pb-6")}>
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="font-heading text-lg font-black tracking-tight text-brand-navy">{e.time}</span>
-                    <StatusChip status={e.status} />
-                  </div>
-                  <h3 className="mt-0.5 font-heading text-[15px] font-bold text-brand-navy">{e.title}</h3>
-                  <p className="mt-1 text-[13px] leading-relaxed text-on-surface-variant">{e.desc}</p>
                 </div>
-              </motion.li>
-            ))}
-          </ol>
+
+                {/* Contenu étape */}
+                <div className="min-w-0 pt-0.5">
+                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                    <span className="font-mono text-xs font-bold text-muted-foreground">{s.time}</span>
+                    <span className="font-heading text-sm font-extrabold uppercase tracking-wide">{s.title}</span>
+                    {/* Statut : les deux libellés occupent le même emplacement, opacité croisée */}
+                    <span className="relative inline-flex h-4 items-center">
+                      <motion.span
+                        animate={{ opacity: st === "active" ? 1 : 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="animate-pulse text-[10px] font-bold uppercase tracking-wider text-brand-orange"
+                        aria-hidden={st !== "active"}
+                      >
+                        en cours…
+                      </motion.span>
+                      <motion.span
+                        animate={{ opacity: st === "done" ? 1 : 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="absolute inset-0 flex items-center text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400"
+                        aria-hidden={st !== "done"}
+                      >
+                        terminé
+                      </motion.span>
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{s.desc}</p>
+
+                  {/* ✅ FIX n°1 : la métrique est TOUJOURS rendue (espace réservé),
+                      seule son opacité anime → zéro variation de hauteur */}
+                  <motion.p
+                    initial={false}
+                    animate={{ opacity: st === "done" ? 1 : 0, y: st === "done" ? 0 : 3 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    className="mt-0.5 text-[11px] font-bold"
+                    style={{ color: s.hex === "#0F2D4D" ? undefined : s.hex }}
+                    aria-hidden={st !== "done"}
+                  >
+                    <span className={s.hex === "#0F2D4D" ? "text-foreground" : ""}>▸ {s.metric}</span>
+                  </motion.p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        <RunProgress />
+        {/* ✅ FIX n°2 : aperçu email à structure identique dans les deux états.
+            1 ligne de statut (tronquée) + 3 lignes h-[30px] : skeleton en attente,
+            vraies offres une fois livré → hauteur strictement constante */}
+        <div className="border-t border-border bg-muted/40 px-5 py-4 sm:px-6">
+          {/* Ligne de statut */}
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center">
+              <AnimatePresence mode="wait" initial={false}>
+                {delivered ? (
+                  <motion.span
+                    key="sent"
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex min-w-0 items-center gap-2 text-xs font-extrabold"
+                  >
+                    <MailCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <span className="truncate">Récapitulatif envoyé — 08h00:02</span>
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="waiting"
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"
+                  >
+                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">
+                      Envoi programmé à <span className="font-mono font-extrabold text-foreground">08h00</span>
+                    </span>
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Pastille droite : dots → badge, dans un conteneur à hauteur fixe */}
+            <div className="flex h-5 shrink-0 items-center">
+              <AnimatePresence mode="wait" initial={false}>
+                {delivered ? (
+                  <motion.span
+                    key="badge"
+                    initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{ duration: 0.3 }}
+                    className="rounded-full bg-brand-orange/15 px-2 py-0.5 text-[10px] font-bold text-[#8a5c00] dark:text-brand-orange"
+                  >
+                    3 offres · Tech &amp; Dev
+                  </motion.span>
+                ) : (
+                  <motion.span key="dots" exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="flex items-center gap-1">
+                    {[0, 1, 2].map((i) => (
+                      <span key={i} className="h-1 w-1 animate-bounce rounded-full bg-brand-orange" style={{ animationDelay: `${i * 0.15}s` }} />
+                    ))}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* 3 lignes — skeleton en attente, offres réelles une fois livré */}
+          <div className="mt-2.5 space-y-1.5">
+            {EMAIL_JOBS.map((j, i) =>
+              delivered ? (
+                <motion.div
+                  key={`job-${j.t}`}
+                  initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + i * 0.12, duration: 0.3 }}
+                  className="flex h-7.5 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-[11px]"
+                >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-orange" />
+                  <span className="truncate font-semibold">{j.t}</span>
+                  <span className="truncate text-muted-foreground">— {j.e}</span>
+                </motion.div>
+              ) : (
+                <div
+                  key={`skeleton-${j.t}`}
+                  className="flex h-7.5 animate-pulse items-center gap-2 rounded-md border border-border bg-card px-2.5"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/20" />
+                  <span className="h-2 rounded-full bg-muted-foreground/15" style={{ width: `${68 - i * 14}%` }} />
+                </div>
+              )
+            )}
+          </div>
+        </div>
       </div>
     </motion.div>
   )
@@ -368,7 +352,7 @@ const HeroHowItWorks = () => (
                 </span>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-62.5 text-center">
-                Scraping à 6h00, dédoublonnage à 6h15, filtrage à 7h00, envoi à 8h00 — chaque jour, week-end compris.
+                Scraping à 6h00, dédoublonnage à 6h15, filtrage à 7h00, envoi à 8h00 chaque jour, week-end compris.
               </TooltipContent>
             </Tooltip>
           </motion.div>
@@ -634,10 +618,19 @@ const VisualCollecte = () => (
       </p>
     </div>
 
-    <p className="mt-3.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-      <ShieldAlert className="size-3.5 shrink-0 text-brand-orange" />
-      Scraper LinkedIn : délais renforcés — la source la plus protégée.
-    </p>
+    <div className="flex flex-col md:flex-row gap-2 items-center justify-between pt-3">
+      <p className="mt-3.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <ShieldAlert className="size-3.5 shrink-0 text-brand-orange" />
+        Scraper LinkedIn : délais renforcés — la source la plus protégée.
+      </p>
+
+      <Link
+        to="/sources"
+        className="inline-flex h-8 items-center gap-1 rounded-md px-2.5 text-xs font-bold bg-primary text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98]"
+      >
+        Voir nos sources
+      </Link>
+    </div>
   </CadreVisuel>
 )
 
@@ -747,10 +740,19 @@ const VisualFiltrage = () => (
       ))}
     </ul>
 
-    <p className="mt-3.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-      <SlidersHorizontal className="size-3.5 shrink-0 text-brand-orange" />
-      Chaque abonné reçoit une liste différente — la sienne, et rien d'autre.
-    </p>
+    <div className="flex flex-col md:flex-row gap-2 items-center justify-between pt-3">
+      <p className="mt-3.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <SlidersHorizontal className="size-3.5 shrink-0 text-brand-orange" />
+        Chaque abonné reçoit une liste différente — la sienne, et rien d'autre.
+      </p>
+
+      <Link
+        to="/filieres"
+        className="inline-flex h-8 items-center text-center gap-1 rounded-md px-2.5 text-xs font-bold bg-brand-orange text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98]"
+      >
+        Voir tous les filieres
+      </Link>
+    </div>
   </CadreVisuel>
 )
 
@@ -838,7 +840,7 @@ const EtapesDetail = () => {
           </h2>
           <p className="mt-3 text-base leading-relaxed text-on-surface-variant sm:text-lg">
             La chaîne s'exécute seule chaque matin, sans action humaine. Voici exactement ce que fait
-            chaque maillon — et ce qu'il ne fait pas.
+            chaque maillon et ce qu'il ne fait pas.
           </p>
         </motion.div>
 
@@ -1019,17 +1021,15 @@ const FaqFonctionnement = () => (
 ════════════════════════════════════════════════════════════════════ */
 
 const HowItWorks = () => (
-  <TooltipProvider delayDuration={150}>
-    <>
-      <Seo {...howItWorksSeo} />
-      <main>
-        <HeroHowItWorks />
-        <EtapesDetail />
-        <SourcesBand />
-        <FaqFonctionnement />
-      </main>
-    </>
-  </TooltipProvider>
+  <>
+    <Seo {...howItWorksSeo} />
+    <main>
+      <HeroHowItWorks />
+      <EtapesDetail />
+      <SourcesBand />
+      <FaqFonctionnement />
+    </main>
+  </>
 )
 
 export default HowItWorks

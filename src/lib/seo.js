@@ -1,5 +1,5 @@
 export const SITE_NAME = "JobAlert CI"
-export const DEFAULT_SITE_URL = "https://job-alert-ci.vercel.app/"
+export const DEFAULT_SITE_URL = "https://job-alert-ci.vercel.app"
 
 export const siteUrl = (import.meta.env.VITE_SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, "")
 
@@ -195,4 +195,127 @@ export const howItWorksSeo = {
       },
     ],
   },
+}
+
+const makeBreadcrumb = (items) => ({
+  "@type": "BreadcrumbList",
+  itemListElement: items.map((item, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name: item.name,
+    item: item.url,
+  })),
+})
+
+export const filieresSeo = (filieres = []) => ({
+  title: "Filières métiers | JobAlert CI",
+  description:
+    "Explorez les 13 filières métiers couvertes par JobAlert CI et trouvez les offres d'emploi pertinentes en Côte d'Ivoire, triées et filtrées chaque matin à 8h00.",
+  path: "/filieres",
+  image: "/screen.png",
+  imageAlt: "Vue des filières métiers sur JobAlert CI",
+  keywords:
+    "filières métiers Côte d'Ivoire, offres d'emploi par filière, emploi Abidjan, JobAlert CI, alerte emploi par secteur",
+  type: "website",
+  locale: "fr_CI",
+  structuredData: {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${siteUrl}/filieres#webpage`,
+        url: `${siteUrl}/filieres`,
+        name: "Filières métiers | JobAlert CI",
+        description:
+          "Explorez les 13 filières métiers couvertes par JobAlert CI et trouvez les offres d'emploi pertinentes en Côte d'Ivoire, triées et filtrées chaque matin à 8h00.",
+        inLanguage: "fr-CI",
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${siteUrl}/#service`,
+        },
+      },
+      makeBreadcrumb([
+        { name: "Accueil", url: `${siteUrl}/` },
+        { name: "Filières", url: `${siteUrl}/filieres` },
+      ]),
+      {
+        "@type": "ItemList",
+        "@id": `${siteUrl}/filieres#itemlist`,
+        name: "Filières couvertes",
+        itemListElement: filieres.map((f, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: f.label,
+          url: `${siteUrl}/filieres/${f.code}`,
+        })),
+      },
+    ],
+  },
+})
+
+export const filiereSeo = ({ meta, filiere, offres = [] }) => {
+  if (!meta) {
+    return {
+      title: "Filière introuvable | JobAlert CI",
+      description:
+        "La filière demandée n'existe pas ou n'est plus disponible. Retournez à la liste des filières métiers sur JobAlert CI.",
+      path: `/filieres/${filiere || ""}`,
+      image: "/screen.png",
+      imageAlt: "Filière introuvable sur JobAlert CI",
+      type: "website",
+      locale: "fr_CI",
+      noindex: true,
+    }
+  }
+
+  const topOffers = offres.slice(0, 8)
+  const description = `${meta.label} sur JobAlert CI : ${meta.actives} offres actives, ${meta.abonnes.toLocaleString("fr-FR")} abonnés et des nouvelles offres filtrées chaque matin à 8h00.`
+
+  return {
+    title: `${meta.label} | Offres d'emploi en Côte d'Ivoire | JobAlert CI`,
+    description,
+    path: `/filieres/${meta.code}`,
+    image: "/screen.png",
+    imageAlt: `Offres d'emploi ${meta.label} sur JobAlert CI`,
+    keywords: `${meta.label}, offres d'emploi ${meta.label} Côte d'Ivoire, alerte emploi ${meta.label}, JobAlert CI, ${meta.keywords.join(", ")}`,
+    type: "website",
+    locale: "fr_CI",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": `${siteUrl}/filieres/${meta.code}#webpage`,
+          url: `${siteUrl}/filieres/${meta.code}`,
+          name: `${meta.label} | Offres d'emploi en Côte d'Ivoire | JobAlert CI`,
+          description,
+          inLanguage: "fr-CI",
+          isPartOf: {
+            "@id": `${siteUrl}/#website`,
+          },
+          about: {
+            "@id": `${siteUrl}/#service`,
+          },
+          primaryImageOfPage: absoluteUrl("/screen.png"),
+        },
+        makeBreadcrumb([
+          { name: "Accueil", url: `${siteUrl}/` },
+          { name: "Filières", url: `${siteUrl}/filieres` },
+          { name: meta.label, url: `${siteUrl}/filieres/${meta.code}` },
+        ]),
+        {
+          "@type": "ItemList",
+          "@id": `${siteUrl}/filieres/${meta.code}#itemlist`,
+          name: `Offres ${meta.label}`,
+          itemListElement: topOffers.map((offer, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: `${offer.titre} — ${offer.entreprise}`,
+          })),
+        },
+      ],
+    },
+  }
 }

@@ -382,7 +382,7 @@ const Header = () => {
                 {dateFr}
                 <span className="text-white/30">·</span>
                 <Clock className="size-3" />
-                Prochain envoi à 6h00
+                Prochain envoi à 8h00
               </p>
             </div>
           </motion.div>

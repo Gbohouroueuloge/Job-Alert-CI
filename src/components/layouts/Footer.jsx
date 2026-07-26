@@ -13,6 +13,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { getImgSource } from "@/utils/utilsSource"
+import { FaLinkedin } from "react-icons/fa6"
+import { Badge } from "../ui/badge"
 
 /* ------------------------------------------------------------------ */
 /*  Données                                                            */
@@ -44,6 +47,7 @@ const SUPPORT_FOOTER = [
 ]
 
 const socialsLinks = [
+  { label: "LinkedIn", icon: FaLinkedin, color: "hover:bg-blue-600/20 hover:text-blue-500 hover:border-blue-500/50", link: "https://linkedin.com" },
   { label: "Facebook", icon: SiFacebook, color: "hover:bg-blue-600/20 hover:text-blue-500 hover:border-blue-500/50", link: "https://facebook.com" },
   { label: "Instagram", icon: SiInstagram, color: "hover:bg-pink-600/20 hover:text-pink-500 hover:border-pink-500/50", link: "https://instagram.com" },
   { label: "X", icon: SiX, color: "hover:bg-slate-900 hover:text-white hover:border-white/30", link: "https://x.com" },
@@ -53,13 +57,14 @@ const SOURCES = [
   { src: "EmploiDakar CI", link: "https://www.emploidakar.com/" },
   { src: "GoAfrica", link: "https://www.goafricaonline.com/fr" },
   { src: "Novojob", link: "https://www.novojob.com/cote-d-ivoire/" },
-  { src: "LinkedIn", link: "https://linkedin.com" },
+  { src: "LinkedIn", linkedin: true, link: "https://linkedin.com", ic: true },
 ]
 
 const APERCU_OFFRES = [
   { titre: "Développeur Full-Stack", entreprise: "Groupe SIFCA", source: "Novojob" },
-  { titre: "Responsable RH", entreprise: "Orange Côte d'Ivoire", source: "LinkedIn" },
+  { titre: "Responsable RH", entreprise: "Orange Côte d'Ivoire", source: "LinkedIn", linkedin: true },
   { titre: "Conducteur de travaux", entreprise: "Bouygues CI", source: "GoAfrica" },
+  { titre: "Infirmier(ère) diplômé(e)", entreprise: "Clinique Farah", source: "EmploiDakar CI" },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -193,7 +198,7 @@ const Footer = () => {
             </form>
 
             <p className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-white/50">
-              {["Gratuit pour toujours", "1 email par jour à 8h00", "Désinscription en 1 clic"].map((t) => (
+              {["Gratuit pour toujours", "1 email par jour à 8h00", "Désinscription en 1 clic", "0 doublon, 0 spam"].map((t) => (
                 <span key={t} className="inline-flex items-center gap-1.5">
                   <Check className="size-3.5 text-emerald-400" />
                   {t}
@@ -255,9 +260,15 @@ const Footer = () => {
                       <p className="truncate text-[13px] font-semibold text-white">{o.titre}</p>
                       <p className="truncate text-[11px] text-white/50">{o.entreprise}</p>
                     </div>
-                    <span className="shrink-0 rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/60">
+                    <Badge
+                      variant="outline"
+                      className="shrink-0 rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/60"
+                    >
+                      {o.linkedin ?
+                        <FaLinkedin className="size-2.5 text-[#0A66C2]" />
+                        : <img src={getImgSource(o.source)} alt={o.source} className="h-full size-6.5 object-contain" />}
                       {o.source}
-                    </span>
+                    </Badge>
                   </motion.li>
                 ))}
               </ul>
@@ -409,7 +420,7 @@ const Footer = () => {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-6 text-xs text-white/45 md:flex-row md:px-12">
           <p className="flex items-center gap-2">
             &copy; 2026 JobAlert CI
-            <span className="hidden size-1 rounded-full bg-outline-variant/20 sm:block" aria-hidden />
+            <span className="size-1 rounded-full bg-outline-variant/20" />
             Tous droits réservés.
           </p>
 
@@ -422,14 +433,13 @@ const Footer = () => {
                 href={s.link} key={i} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 font-semibold text-white/60 hover:text-brand-orange"
               >
+                {s.ic ?
+                  <FaLinkedin className="size-2.5 text-[#0A66C2]" />
+                  : <img src={getImgSource(s.src)} alt={s.src} className="h-full size-6.5 object-contain" />}
                 {s.src}
                 {i < SOURCES.length - 1 && <span className="text-white/20">·</span>}
               </a>
             ))}
-            {/* <span className="text-white/20">·</span>
-            <span className="inline-flex items-center gap-2 font-semibold text-white/60">
-              +14 autres sources
-            </span> */}
           </p>
 
           <div className="flex items-center gap-4">

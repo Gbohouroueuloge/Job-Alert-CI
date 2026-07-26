@@ -1,8 +1,20 @@
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import Home from "./Pages/Home";
 import { TooltipProvider } from "./components/ui/tooltip";
 import Header from "./components/layouts/Header";
 import Footer from "./components/layouts/Footer";
+import HowItWorks from "./Pages/HowItWorks";
+import { useEffect } from "react";
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
+
+  return null;
+};
 
 const Layout = () => {
   return (
@@ -18,9 +30,11 @@ const App = () => {
   return (
     <TooltipProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="comment-ca-marche" element={<HowItWorks />} />
           </Route>
         </Routes>
       </BrowserRouter>

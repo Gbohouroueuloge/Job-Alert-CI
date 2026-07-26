@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { animate, motion, useInView } from "framer-motion"
+import { animate, motion, useInView, useScroll, useSpring } from "framer-motion"
 import {
   ArrowRight, BadgeCheck, Bell, Check, Clock, Fingerprint,
   Radar, Send, SlidersHorizontal, MessageCircleQuestion, Quote,
@@ -21,6 +21,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { FaLinkedin } from "react-icons/fa6"
+import { getImgSource } from "@/utils/utilsSource"
 
 /* ------------------------------------------------------------------ */
 /*  Données                                                            */
@@ -51,12 +53,14 @@ const REASSURANCES = [
   "Désinscription en 1 clic",
   "Pas de doublons",
   "Rapport quotidien",
+  "0% de spam",
 ]
 
 const JOBS_APERCU = [
   { titre: "Développeur Full-Stack", entreprise: "Groupe SIFCA · Abidjan", source: "Novojob", dot: "bg-sky-500" },
   { titre: "Responsable RH", entreprise: "Orange Côte d'Ivoire · Abidjan", source: "LinkedIn", dot: "bg-violet-500", linkedin: true },
   { titre: "Conducteur de travaux", entreprise: "Bouygues CI · Yamoussoukro", source: "GoAfrica", dot: "bg-amber-500" },
+  { titre: "Infirmier(ère) diplômé(e)", entreprise: "Clinique Farah · Abidjan", source: "EmploiDakar CI", dot: "bg-rose-500" },
 ]
 
 const STATS = [
@@ -101,27 +105,27 @@ const STEPS = [
 const OFFRES = [
   {
     id: 1, titre: "Développeur Full-Stack", entreprise: "Tech Solutions CI", ville: "Abidjan · Plateau",
-    contrat: "CDI", source: "Novojob", fresh: true, icon: Code2, tile: "bg-sky-500/10 text-sky-600"
+    contrat: "CDI", source: "Novojob", fresh: true, icon: Code2, tile: "bg-sky-500/10 text-sky-600 group-hover:bg-sky-500 group-hover:text-white", hover: "hover:border-sky-600 group-hover:text-white"
   },
   {
     id: 2, titre: "Responsable RH", entreprise: "Orange Côte d'Ivoire", ville: "Abidjan · Cocody",
-    contrat: "CDI", source: "LinkedIn", linkedin: true, fresh: true, icon: Users, tile: "bg-violet-500/10 text-violet-600"
+    contrat: "CDI", source: "LinkedIn", linkedin: true, fresh: true, icon: Users, tile: "bg-violet-500/10 text-violet-600 group-hover:bg-violet-500 group-hover:text-white", hover: "hover:border-violet-600 group-hover:text-white"
   },
   {
     id: 3, titre: "Comptable senior", entreprise: "Groupe SIFCA", ville: "Abidjan · Treichville",
-    contrat: "CDI", source: "Novojob", fresh: true, icon: Calculator, tile: "bg-emerald-500/10 text-emerald-600"
+    contrat: "CDI", source: "Novojob", fresh: true, icon: Calculator, tile: "bg-emerald-500/10 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white", hover: "hover:border-emerald-600 group-hover:text-white"
   },
   {
     id: 4, titre: "Conducteur de travaux", entreprise: "Bouygues CI", ville: "Yamoussoukro",
-    contrat: "CDD", source: "GoAfrica", icon: HardHat, tile: "bg-amber-500/10 text-amber-600"
+    contrat: "CDD", source: "GoAfrica", icon: HardHat, tile: "bg-amber-500/10 text-amber-600 group-hover:bg-amber-500 group-hover:text-white", hover: "hover:border-amber-600 group-hover:text-white"
   },
   {
     id: 5, titre: "Infirmier(ère) diplômé(e)", entreprise: "Clinique Farah", ville: "Abidjan · Marcory",
-    contrat: "CDI", source: "EmploiDakar CI", icon: Stethoscope, tile: "bg-rose-500/10 text-rose-600"
+    contrat: "CDI", source: "EmploiDakar CI", icon: Stethoscope, tile: "bg-rose-500/10 text-rose-600 group-hover:bg-rose-500 group-hover:text-white", hover: "hover:border-rose-600 group-hover:text-white"
   },
   {
     id: 6, titre: "Commercial terrain", entreprise: "Agro Distribution", ville: "San Pédro",
-    contrat: "Mission", source: "GoAfrica", icon: Handshake, tile: "bg-orange-500/10 text-orange-600"
+    contrat: "Mission", source: "GoAfrica", icon: Handshake, tile: "bg-orange-500/10 text-orange-600 group-hover:bg-orange-500 group-hover:text-white", hover: "hover:border-orange-600 group-hover:text-white"
   },
 ]
 
@@ -260,13 +264,13 @@ const fadeUp = {
 /* Compteur animé au scroll */
 const CountUp = ({ to, suffix = "" }) => {
   const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: "-40px" })
+  const inView = useInView(ref, { once: true, margin: "-38px" })
   const [value, setValue] = useState(0)
 
   useEffect(() => {
     if (!inView) return
     const controls = animate(0, to, {
-      duration: 1.4,
+      duration: 1.8,
       ease: [0.22, 1, 0.36, 1],
       onUpdate: (v) => setValue(Math.round(v)),
     })
@@ -321,7 +325,7 @@ const Hero = () => {
       />
       <div className="absolute -bottom-40 -left-40 size-120 rounded-full bg-brand-navy/4 blur-3xl" aria-hidden />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-12 md:pb-20 md:pt-8 lg:pt-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-12 md:pb-20 lg:pt-10">
         <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
           {/* ═══ Colonne gauche — la promesse ═══════════════════════ */}
           <motion.div
@@ -556,7 +560,9 @@ const Hero = () => {
                             variant="outline"
                             className="shrink-0 gap-1 rounded-full border-outline-variant/60 bg-surface-container-low/60 px-2 py-0.5 text-[10px] font-semibold text-on-surface-variant"
                           >
-                            {/* {j.linkedin && <SiLinkedin className="size-2.5 text-[#0A66C2]" />} */}
+                            {j.linkedin ?
+                              <FaLinkedin className="size-2.5 text-[#0A66C2]" />
+                              : <img src={getImgSource(j.source)} alt={j.source} className="h-full object-contain" />}
                             {j.source}
                           </Badge>
                         </TooltipTrigger>
@@ -609,146 +615,157 @@ const Hero = () => {
   )
 }
 
-const HowItWorks = () => (
-  <section className="relative overflow-hidden bg-surface-container-lowest py-20 md:py-24">
-    <div className="pointer-events-none absolute inset-0 bg-pattern opacity-40" aria-hidden />
+const HowItWorks = () => {
+  const timelineRef = useRef(null)
 
-    <div className="relative mx-auto max-w-7xl px-6 md:px-12">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <SectionHeading
-          eyebrow="La chaîne quotidienne"
-          title={
-            <>
-              Pendant que vous dormez, votre récap{" "}
-              <span className="text-brand-orange">se prépare tout seul</span>.
-            </>
-          }
-          sub="Chaque matin, la même chaîne s'exécute sans intervention humaine entre 6h00 et 8h00. Voici ce qui se passe pendant ce temps."
-        />
-        <span className="hidden items-center gap-2 rounded-full border border-outline-variant/50 bg-white px-4 py-2 text-xs font-semibold text-on-surface-variant md:inline-flex">
-          <Clock className="size-3.5 text-brand-orange" />
-          100 % automatique / 0 action de votre part
-        </span>
-      </div>
+  /* Progression du rail mobile : liée au scroll à travers la timeline */
+  const { scrollYProgress } = useScroll({
+    target: timelineRef,
+    offset: ["start 0.85", "end 0.6"],
+  })
+  const railMobile = useSpring(scrollYProgress, { stiffness: 110, damping: 28, restDelta: 0.001 })
 
-      {/* Timeline */}
-      <div className="relative mt-12 lg:mt-16">
-        {/* Rail vertical (mobile) */}
-        <div className="absolute bottom-8 left-7 top-8 w-0.5 -translate-x-1/2 bg-outline-variant/40 lg:hidden" aria-hidden />
-        <motion.div
-          initial={{ scaleY: 0 }}
-          whileInView={{ scaleY: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.4, ease: "easeOut" }}
-          className="absolute bottom-8 left-7 top-8 w-0.5 origin-top -translate-x-1/2 bg-brand-orange lg:hidden"
-          aria-hidden
-        />
-        {/* Rail horizontal (desktop) */}
-        <div className="absolute left-0 right-0 top-7 hidden h-0.5 bg-outline-variant/40 lg:block" aria-hidden />
-        <motion.div
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 1.4, ease: "easeOut" }}
-          className="absolute left-0 right-0 top-7 hidden h-0.5 origin-left bg-brand-orange lg:block"
-          aria-hidden
-        />
+  return (
+    <section className="relative overflow-hidden bg-surface-container-lowest py-20 md:py-24">
+      <div className="pointer-events-none absolute inset-0 bg-pattern opacity-40" aria-hidden />
 
-        <div className="grid lg:grid-cols-4 lg:gap-8">
-          {STEPS.map((s, i) => (
-            <motion.div
-              key={s.time}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
-              className="relative flex gap-5 lg:flex-col lg:gap-0"
-            >
-              {/* Nœud */}
-              <div className="relative z-10 shrink-0 lg:mb-6">
-                <span
-                  className={cn(
-                    "flex size-14 items-center justify-center rounded-full border-2 bg-white",
-                    s.highlight
-                      ? "border-brand-orange bg-brand-orange text-white shadow-[0_8px_20px_rgba(245,166,35,0.35)]"
-                      : "border-outline-variant/60 text-brand-navy"
-                  )}
-                >
-                  <s.icon className="size-6" strokeWidth={2} />
-                </span>
-              </div>
+      <div className="relative mx-auto max-w-7xl px-6 md:px-12">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <SectionHeading
+            eyebrow="La chaîne quotidienne"
+            title={
+              <>
+                Pendant que vous dormez, votre récap{" "}
+                <span className="text-brand-orange">se prépare tout seul</span>.
+              </>
+            }
+            sub="Chaque matin, la même chaîne s'exécute sans intervention humaine entre 6h00 et 8h00. Voici ce qui se passe pendant ce temps."
+          />
+          <span className="hidden items-center gap-2 rounded-full border border-outline-variant/50 bg-white px-4 py-2 text-xs font-semibold text-on-surface-variant md:inline-flex">
+            <Clock className="size-3.5 text-brand-orange" />
+            100 % automatique / 0 action de votre part
+          </span>
+        </div>
 
-              {/* Contenu */}
-              <div className={cn("flex-1 pb-10 lg:pb-0", i === STEPS.length - 1 && "pb-0")}>
-                <div className={cn(s.highlight && "rounded-xl bg-brand-navy p-5 lg:p-6")}>
-                  <p
-                    className={cn(
-                      "font-heading text-2xl font-black tracking-tight",
-                      s.highlight ? "text-brand-orange" : "text-brand-navy"
-                    )}
-                  >
-                    {s.time}
-                  </p>
-                  <h3
-                    className={cn(
-                      "mt-1 font-heading text-lg font-bold",
-                      s.highlight ? "text-white" : "text-brand-navy"
-                    )}
-                  >
-                    {s.title}
-                  </h3>
-                  <p
-                    className={cn(
-                      "mt-2 text-sm leading-relaxed",
-                      s.highlight ? "text-white/70" : "text-on-surface-variant"
-                    )}
-                  >
-                    {s.text}
-                  </p>
+        {/* Timeline */}
+        <div ref={timelineRef} className="relative mt-12 lg:mt-16">
+          {/* Rail vertical fond (mobile) */}
+          <div className="absolute bottom-8 left-6.75 top-8 w-0.5 bg-outline-variant/40 lg:hidden" aria-hidden />
+          {/* Rail vertical remplissage (mobile) — suit le scroll */}
+          <motion.div
+            style={{ scaleY: railMobile }}
+            className="absolute bottom-8 left-6.75 top-8 w-0.5 origin-top bg-brand-orange lg:hidden"
+            aria-hidden
+          />
+
+          {/* Rail horizontal fond (desktop) */}
+          <div className="absolute left-0 right-0 top-7 hidden h-0.5 bg-outline-variant/40 lg:block" aria-hidden />
+          {/* Rail horizontal remplissage (desktop) — se dessine à l'arrivée */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.4, ease: "easeOut" }}
+            className="absolute left-0 right-0 top-7 hidden h-0.5 origin-left bg-brand-orange lg:block"
+            aria-hidden
+          />
+
+          <div className="grid lg:grid-cols-4 lg:gap-8">
+            {STEPS.map((s, i) => (
+              <motion.div
+                key={s.time}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                className="relative flex gap-5 lg:flex-col lg:gap-0"
+              >
+                {/* Nœud */}
+                <div className="relative z-10 shrink-0 lg:mb-6">
                   <span
                     className={cn(
-                      "mt-3.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                      "flex size-14 items-center justify-center rounded-full border-2 bg-white",
                       s.highlight
-                        ? "border-white/20 bg-white/10 text-white"
-                        : "border-outline-variant/50 bg-surface-container-low/60 text-on-surface-variant"
+                        ? "border-brand-orange bg-brand-orange text-white shadow-[0_8px_20px_rgba(245,166,35,0.35)]"
+                        : "border-outline-variant/60 text-brand-navy"
                     )}
                   >
-                    <Check
-                      className={cn("size-3", s.highlight ? "text-brand-orange" : "text-emerald-600")}
-                      strokeWidth={3}
-                    />
-                    {s.chip}
+                    <s.icon className="size-6" strokeWidth={2} />
                   </span>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
 
-      {/* Chute */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="mt-14 flex flex-col items-start justify-between gap-4 rounded-xl border border-outline-variant/50 bg-surface-container-low/60 px-6 py-5 sm:flex-row sm:items-center"
-      >
-        <p className="text-sm text-on-surface-variant">
-          <strong className="font-semibold text-brand-navy">Et vous, pendant ce temps ?</strong> Rien.
-          C'est exactement le but, l'information vient à vous, jamais l'inverse.
-        </p>
-        <Link
-          to="/comment-ca-marche"
-          className="group inline-flex shrink-0 items-center gap-2 text-sm font-bold text-brand-navy transition-colors hover:text-brand-orange"
+                {/* Contenu */}
+                <div className={cn("flex-1 pb-10 lg:pb-0", i === STEPS.length - 1 && "pb-0")}>
+                  <div className={cn(s.highlight && "rounded-xl bg-brand-navy p-5 lg:p-6")}>
+                    <p
+                      className={cn(
+                        "font-heading text-2xl font-black tracking-tight",
+                        s.highlight ? "text-brand-orange" : "text-brand-navy"
+                      )}
+                    >
+                      {s.time}
+                    </p>
+                    <h3
+                      className={cn(
+                        "mt-1 font-heading text-lg font-bold",
+                        s.highlight ? "text-white" : "text-brand-navy"
+                      )}
+                    >
+                      {s.title}
+                    </h3>
+                    <p
+                      className={cn(
+                        "mt-2 text-sm leading-relaxed",
+                        s.highlight ? "text-white/70" : "text-on-surface-variant"
+                      )}
+                    >
+                      {s.text}
+                    </p>
+                    <span
+                      className={cn(
+                        "mt-3.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                        s.highlight
+                          ? "border-white/20 bg-white/10 text-white"
+                          : "border-outline-variant/50 bg-surface-container-low/60 text-on-surface-variant"
+                      )}
+                    >
+                      <Check
+                        className={cn("size-3", s.highlight ? "text-brand-orange" : "text-emerald-600")}
+                        strokeWidth={3}
+                      />
+                      {s.chip}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chute */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-14 flex flex-col items-start justify-between gap-4 rounded-xl border border-outline-variant/50 bg-surface-container-low/60 px-6 py-5 sm:flex-row sm:items-center"
         >
-          Voir le fonctionnement en détail
-          <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-        </Link>
-      </motion.div>
-    </div>
-  </section>
-)
+          <p className="text-sm text-on-surface-variant">
+            <strong className="font-semibold text-brand-navy">Et vous, pendant ce temps ?</strong> Rien.
+            C'est exactement le but, l'information vient à vous, jamais l'inverse.
+          </p>
+          <Link
+            to="/comment-ca-marche"
+            className="group inline-flex shrink-0 items-center gap-2 text-sm font-bold text-brand-navy transition-colors hover:text-brand-orange"
+          >
+            Voir le fonctionnement en détail
+            <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
 
 const RecentOffers = () => (
   <section className="border-y border-outline-variant/30 bg-background py-20 md:py-24">
@@ -786,7 +803,9 @@ const RecentOffers = () => (
               >
                 <Link
                   to={`/offres/${o.id}`}
-                  className="group flex items-center gap-4 rounded-xl border border-outline-variant/40 bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-orange/50 hover:shadow-hover"
+                  className={cn(
+                    "group flex items-center gap-4 rounded-xl border border-outline-variant/40 bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-orange/50 hover:shadow-hover", o.hover
+                  )}
                 >
                   <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-lg", o.tile)}>
                     <o.icon className="size-5" strokeWidth={2} />
@@ -818,7 +837,7 @@ const RecentOffers = () => (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="hidden shrink-0 cursor-default items-center gap-1.5 rounded-full border border-outline-variant/50 bg-surface-container-low/60 px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant md:inline-flex">
-                        {/* {o.linkedin && <SiLinkedin className="size-3 text-[#0A66C2]" />} */}
+                        {o.linkedin ? <FaLinkedin className="size-3 text-[#0A66C2]" /> : <img src={getImgSource(o.source)} alt={o.source} className="size-4" />}
                         {o.source}
                       </span>
                     </TooltipTrigger>
@@ -953,10 +972,10 @@ const FaqSection = () => (
         viewport={{ once: true, margin: "-60px" }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Accordion type="single" collapsible defaultValue="q1" className="w-full">
+        <Accordion type="single" collapsible defaultValue="q1" className="w-full border-0">
           {QUESTIONS.map((q) => (
-            <AccordionItem key={q.id} value={q.id} className="border-outline-variant/40">
-              <AccordionTrigger className="py-5 text-left hover:no-underline font-heading text-[15px] font-bold text-brand-navy transition-colors duration-200 hover:text-brand-orange">
+            <AccordionItem key={q.id} value={q.id} className="border-outline-variant/40 border-0 group">
+              <AccordionTrigger className="py-5 text-left hover:no-underline font-heading text-[15px] font-bold text-brand-navy transition-colors duration-200 hover:text-brand-orange group-data-open:text-brand-orange">
                 {q.question}
               </AccordionTrigger>
               <AccordionContent className="pb-5 text-sm leading-relaxed text-on-surface-variant">

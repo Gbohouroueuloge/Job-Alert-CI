@@ -154,7 +154,7 @@
   --radius-4xl: 2.5rem;
   --radius-full: 9999px;
 
-  --animate-marquee: marquee 60s linear infinite;
+  --animate-marquee: marquee 45s linear infinite;
 }
 
 :root {
@@ -295,11 +295,11 @@
 
   @keyframes marquee {
     from {
-      transform: translateX(-50%);
+      transform: translateX(0);
     }
 
     to {
-      transform: translateX(0);
+      transform: translateX(-50%);
     }
   }
 }

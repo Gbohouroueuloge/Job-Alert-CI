@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef } from "react"
 import { Link } from "react-router-dom"
-import { animate, motion, useInView, useScroll, useSpring } from "framer-motion"
+import { motion, useScroll, useSpring } from "framer-motion"
 import {
   ArrowRight, BadgeCheck, Bell, Check, Clock, Fingerprint,
-  Radar, Send, SlidersHorizontal, MessageCircleQuestion, Quote,
-  ArrowUpRight, Calculator, Code2, Handshake, HardHat, MapPin, Stethoscope, Users, Zap,
+  Radar, Send, SlidersHorizontal, MessageCircleQuestion,
+  ArrowUpRight, Calculator, Code2, Handshake, HardHat, Stethoscope, Users, Zap,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Seo from "@/components/seo/Seo"
@@ -15,14 +15,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import { FaLinkedin } from "react-icons/fa6"
 import { getImgSource } from "@/utils/utilsSource"
+import { CountUp, SectionHeading, CtaLink, FeedOffreCard, TemoignageCard, FaqSection } from "@/components/shared"
 
 /* ------------------------------------------------------------------ */
 /*  Données                                                            */
@@ -261,55 +256,6 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
 }
 
-/* Compteur animé au scroll */
-const CountUp = ({ to, suffix = "" }) => {
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: "-60px" })
-  const [value, setValue] = useState(0)
-
-  useEffect(() => {
-    if (!inView) return
-    const controls = animate(0, to, {
-      duration: 1.3,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate: (v) => setValue(Math.round(v)),
-    })
-    return () => controls.stop()
-  }, [inView, to])
-
-  return (
-    <span ref={ref}>
-      {value}
-      {suffix}
-    </span>
-  )
-}
-
-const SectionHeading = ({ eyebrow, title, sub, align = "left", className }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 24 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "-80px" }}
-    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-    className={cn("max-w-2xl", align === "center" && "mx-auto text-center", className)}
-  >
-    <p
-      className={cn(
-        "flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-orange",
-        align === "center" && "justify-center"
-      )}
-    >
-      <span className="h-px w-6 bg-brand-orange" aria-hidden />
-      {eyebrow}
-      {align === "center" && <span className="h-px w-6 bg-brand-orange" aria-hidden />}
-    </p>
-    <h2 className="mt-3 font-heading text-3xl font-extrabold tracking-tight text-brand-navy sm:text-4xl">
-      {title}
-    </h2>
-    {sub && <p className="mt-3 text-base leading-relaxed text-on-surface-variant sm:text-lg">{sub}</p>}
-  </motion.div>
-)
-
 /* ------------------------------------------------------------------ */
 /*  Les Componsants principales                                       */
 /* ------------------------------------------------------------------ */
@@ -327,7 +273,7 @@ const Hero = () => {
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-12 md:pb-20 lg:pt-10">
         <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
-          {/* ═══ Colonne gauche — la promesse ═══════════════════════ */}
+          {/* Colonne gauche */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -391,20 +337,8 @@ const Hero = () => {
 
             {/* Appels à l'action */}
             <motion.div variants={fadeUp} className="mt-1 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/inscription"
-                className="group inline-flex items-center justify-center gap-2.5 rounded-lg bg-brand-orange px-7 py-3.5 text-base font-bold text-white shadow-[0_12px_28px_-6px_rgba(245,166,35,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_16px_36px_-6px_rgba(245,166,35,0.55)] active:scale-[0.98]"
-              >
-                <Bell className="size-5 transition-transform duration-300 group-hover:rotate-12" />
-                Créer mon alerte gratuite
-              </Link>
-              <Link
-                to="/offres"
-                className="group inline-flex items-center justify-center gap-2 rounded-lg border border-brand-navy/15 bg-white/70 px-6 py-3.5 text-base font-semibold text-brand-navy backdrop-blur-sm transition-all duration-300 hover:border-brand-navy/35 hover:bg-white"
-              >
-                Voir les offres du jour
-                <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+              <CtaLink to="/inscription" icon={Bell} animateIcon>Créer mon alerte gratuite</CtaLink>
+              <CtaLink to="/offres" variant="secondary" iconRight={ArrowRight}>Voir les offres du jour</CtaLink>
             </motion.div>
 
             {/* Réassurances */}
@@ -794,59 +728,7 @@ const RecentOffers = () => (
         <div>
           <ul className="flex flex-col gap-2.5">
             {OFFRES.map((o, i) => (
-              <motion.li
-                key={o.id}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.45, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <Link
-                  to={`/offres/${o.id}`}
-                  className={cn(
-                    "group flex items-center gap-4 rounded-xl border border-outline-variant/40 bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-orange/50 hover:shadow-hover", o.hover
-                  )}
-                >
-                  <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-lg transition-all duration-500", o.tile)}>
-                    <o.icon className="size-5" strokeWidth={2} />
-                  </span>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="truncate font-heading text-[15px] font-bold text-brand-navy transition-colors duration-300 group-hover:text-brand-orange">
-                        {o.titre}
-                      </h3>
-                      {o.fresh && (
-                        <span className="hidden shrink-0 rounded-full bg-brand-orange px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:inline">
-                          Nouveau
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-muted-foreground">
-                      <span className="font-medium text-on-surface-variant">{o.entreprise}</span>
-                      <span aria-hidden>·</span>
-                      <span className="inline-flex items-center gap-1">
-                        <MapPin className="size-3" />
-                        {o.ville}
-                      </span>
-                      <span aria-hidden>·</span>
-                      <span>{o.contrat}</span>
-                    </p>
-                  </div>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="hidden shrink-0 cursor-default items-center gap-1.5 rounded-full border border-outline-variant/50 bg-surface-container-low/60 px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant md:inline-flex">
-                        {o.linkedin ? <FaLinkedin className="size-3 text-[#0A66C2]" /> : <img src={getImgSource(o.source)} alt={o.source} className="size-4" />}
-                        {o.source}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Collectée sur {o.source} à 6h02</TooltipContent>
-                  </Tooltip>
-
-                  <ArrowUpRight className="size-4 shrink-0 text-outline-variant transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-orange" />
-                </Link>
-              </motion.li>
+              <FeedOffreCard key={o.id} offre={o} index={i} />
             ))}
           </ul>
 
@@ -914,163 +796,14 @@ const RecentOffers = () => (
               Vous ne recevez que vos filières. Jamais le reste.
             </p>
 
-            <Link
-              to="/inscription"
-              className="group mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-brand-orange px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:brightness-110"
-            >
-              <Bell className="size-4 transition-transform duration-300 group-hover:rotate-12" />
+            <CtaLink to="/inscription" size="md" icon={Bell} animateIcon className="mt-4 w-full">
               Recevoir ma sélection à 8h00
-            </Link>
+            </CtaLink>
           </div>
         </motion.aside>
       </div>
     </div>
   </section>
-)
-
-const FaqSection = () => (
-  <section className="bg-surface-container-lowest py-20 md:py-24">
-    <div className="mx-auto grid max-w-7xl gap-12 px-6 md:px-12 lg:grid-cols-[0.9fr_1.1fr]">
-      {/* Colonne gauche */}
-      <div className="self-start lg:sticky lg:top-28">
-        <SectionHeading
-          eyebrow="FAQ"
-          title="Vos questions, nos réponses."
-          sub="Le fonctionnement de JobAlert CI, expliqué sans jargon. Et si quelque chose manque, on vous répond."
-        />
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.55, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8 rounded-xl border border-outline-variant/50 bg-white p-6 shadow-soft"
-        >
-          <span className="flex size-11 items-center justify-center rounded-lg bg-brand-orange/10 text-brand-orange">
-            <MessageCircleQuestion className="size-5" strokeWidth={2} />
-          </span>
-          <h3 className="mt-4 font-heading text-base font-bold text-brand-navy">
-            Vous ne trouvez pas votre réponse ?
-          </h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-on-surface-variant">
-            Écrivez-nous via le formulaire de contact — réponse en moins de 24 h ouvrées.
-          </p>
-          <Link
-            to="/contact"
-            className="group mt-4 inline-flex items-center gap-2 rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-brand-navy/90"
-          >
-            Poser ma question
-            <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-        </motion.div>
-      </div>
-
-      {/* Accordéons */}
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <Accordion type="single" collapsible defaultValue="q1" className="w-full border-0">
-          {QUESTIONS.map((q) => (
-            <AccordionItem key={q.id} value={q.id} className="border-outline-variant/40 border-0 group">
-              <AccordionTrigger className="py-5 text-left hover:no-underline font-heading text-[15px] font-bold text-brand-navy transition-colors duration-200 hover:text-brand-orange group-data-open:text-brand-orange">
-                {q.question}
-              </AccordionTrigger>
-              <AccordionContent className="pb-5 text-sm leading-relaxed text-on-surface-variant">
-                {q.reponse}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </motion.div>
-    </div>
-  </section>
-)
-
-const CarteVedette = ({ t }) => (
-  <figure className="relative flex w-[320px] shrink-0 flex-col overflow-hidden rounded-xl bg-brand-navy p-7 text-white sm:w-115 sm:p-8">
-    <div className="pointer-events-none absolute inset-0 bg-pattern opacity-20" aria-hidden />
-    <div
-      className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(245,166,35,0.16),transparent_55%)]"
-      aria-hidden
-    />
-
-    <div className="relative flex items-center justify-between gap-3">
-      <Quote className="size-8 text-brand-orange" strokeWidth={1.5} aria-hidden />
-      <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white/80">
-        {t.secteur}
-      </span>
-    </div>
-
-    <blockquote className="relative mt-5 flex-1 font-heading text-[13px] font-semibold leading-relaxed sm:text-[19px]">
-      « {t.texte} »
-    </blockquote>
-
-    <figcaption className="relative mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5">
-      <div className="flex items-center gap-3">
-        <span
-          className={cn(
-            "flex size-11 shrink-0 items-center justify-center rounded-full text-xs font-black ring-2 ring-white/20",
-            t.avatar
-          )}
-        >
-          {t.initiales}
-        </span>
-        <div>
-          <p className="flex items-center gap-1.5 text-sm font-bold">
-            {t.nom}
-            <BadgeCheck className="size-4 text-brand-orange" />
-          </p>
-          <p className="text-[11px] text-white/60">{t.ville}</p>
-        </div>
-      </div>
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-3 py-1.5 text-[11px] font-bold">
-        <BadgeCheck className="size-3.5" />
-        {t.resultat}
-      </span>
-    </figcaption>
-  </figure>
-)
-
-/* ── Carte standard ─────────────────────────────────────────────────── */
-const CarteTemoignage = ({ t }) => (
-  <figure className="flex w-72.5 shrink-0 flex-col rounded-xl border border-outline-variant/40 bg-white p-6 shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:border-brand-orange/40 hover:shadow-hover sm:w-87.5">
-    <div className="flex items-center justify-between gap-3">
-      <Quote className="size-6 text-brand-orange/40" strokeWidth={1.5} aria-hidden />
-      <span className="rounded-full bg-surface-container-low px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-        {t.secteur}
-      </span>
-    </div>
-
-    <blockquote className="mt-4 flex-1 text-[15px] leading-relaxed text-on-surface-variant">
-      « {t.texte} »
-    </blockquote>
-
-    <figcaption className="mt-5 flex items-center gap-3 border-t border-outline-variant/30 pt-4">
-      <span
-        className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-black text-white",
-          t.avatar
-        )}
-      >
-        {t.initiales}
-      </span>
-      <div className="min-w-0">
-        <p className="flex items-center gap-1 text-sm font-bold text-brand-navy">
-          {t.nom}
-          <BadgeCheck className="size-3.5 shrink-0 text-brand-orange" />
-        </p>
-        <p className="truncate text-[11px] text-muted-foreground">{t.ville}</p>
-      </div>
-    </figcaption>
-
-    <span className="mt-3.5 inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
-      <BadgeCheck className="size-3" />
-      {t.resultat}
-    </span>
-  </figure>
 )
 
 /* ── Section ────────────────────────────────────────────────────────── */
@@ -1105,13 +838,9 @@ const Testimonials = () => (
         <div className="flex w-max will-change-transform motion-safe:animate-marquee group-hover:paused">
           {[0, 1].map((copie) => (
             <div key={copie} className="flex shrink-0 gap-5 pr-5" aria-hidden={copie === 1}>
-              {TEMOIGNAGES.map((t) =>
-                t.vedette ? (
-                  <CarteVedette key={`${copie}-${t.nom}`} t={t} />
-                ) : (
-                  <CarteTemoignage key={`${copie}-${t.nom}`} t={t} />
-                )
-              )}
+              {TEMOIGNAGES.map((t) => (
+                <TemoignageCard key={`${copie}-${t.nom}`} t={t} variant={t.vedette ? "vedette" : "standard"} />
+              ))}
             </div>
           ))}
         </div>
@@ -1141,7 +870,20 @@ const Home = () => {
         <Hero />
         <HowItWorks />
         <RecentOffers />
-        <FaqSection />
+        <FaqSection
+          eyebrow="FAQ"
+          title="Vos questions, nos réponses."
+          sub="Le fonctionnement de JobAlert CI, expliqué sans jargon. Et si quelque chose manque, on vous répond."
+          questions={QUESTIONS}
+          separated={false}
+          aside={{
+            icon: MessageCircleQuestion,
+            title: "Vous ne trouvez pas votre réponse ?",
+            text: "Écrivez-nous via le formulaire de contact — réponse en moins de 24 h ouvrées.",
+            to: "/contact",
+            cta: "Poser ma question",
+          }}
+        />
         <Testimonials />
       </main>
     </>

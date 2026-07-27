@@ -207,6 +207,171 @@ const makeBreadcrumb = (items) => ({
   })),
 })
 
+const normalizeText = (value = "") => String(value).replace(/\s+/g, " ").trim()
+const clampText = (value, max = 180) => {
+  const text = normalizeText(value)
+  if (text.length <= max) return text
+  return `${text.slice(0, max - 1).trimEnd()}…`
+}
+
+const joinKeywords = (...parts) =>
+  [...new Set(parts.flat(Infinity).map(normalizeText).filter(Boolean))].join(", ")
+
+const sortSourceEntries = (entries = []) =>
+  [...entries]
+    .filter(([, count]) => Number(count) > 0)
+    .sort((a, b) => Number(b[1]) - Number(a[1]))
+
+export const offresSeo = ({ total = 0, nouveaux = 0, parSource = {}, offers = [] } = {}) => {
+  const topOffers = offers.slice(0, 12)
+  const topSources = sortSourceEntries(Object.entries(parSource))
+    .slice(0, 3)
+    .map(([source, count]) => `${count} sur ${source}`)
+  const descriptionParts = [
+    `Consultez ${Number(total).toLocaleString("fr-FR")} offres d'emploi en Cote d'Ivoire,`,
+    `dont ${Number(nouveaux).toLocaleString("fr-FR")} nouvelles aujourd'hui,`,
+    "filtrees et triees chaque matin par JobAlert CI.",
+  ]
+  if (topSources.length) descriptionParts.push(`Sources principales: ${topSources.join(", ")}.`)
+
+  const description = clampText(descriptionParts.join(" "))
+
+  return {
+    title: "Offres d'emploi en Cote d'Ivoire | JobAlert CI",
+    description,
+    path: "/offres",
+    image: "/screen.png",
+    imageAlt: "Apercu de la page Offres d'emploi sur JobAlert CI",
+    keywords:
+      "offres d'emploi Cote d'Ivoire, emplois Abidjan, alerte emploi CI, offres du jour, recrutement Cote d'Ivoire, JobAlert CI",
+    type: "website",
+    locale: "fr_CI",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "CollectionPage",
+          "@id": `${siteUrl}/offres#webpage`,
+          url: `${siteUrl}/offres`,
+          name: "Offres d'emploi en Cote d'Ivoire | JobAlert CI",
+          description,
+          inLanguage: "fr-CI",
+          isPartOf: {
+            "@id": `${siteUrl}/#website`,
+          },
+          about: {
+            "@id": `${siteUrl}/#service`,
+          },
+          primaryImageOfPage: absoluteUrl("/screen.png"),
+        },
+        makeBreadcrumb([
+          { name: "Accueil", url: `${siteUrl}/` },
+          { name: "Offres d'emploi", url: `${siteUrl}/offres` },
+        ]),
+        {
+          "@type": "ItemList",
+          "@id": `${siteUrl}/offres#itemlist`,
+          name: "Offres mises en avant",
+          numberOfItems: topOffers.length,
+          itemListElement: topOffers.map((offer, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: `${offer.titre} — ${offer.entreprise}`,
+            url: `${siteUrl}/offres/${offer.id}`,
+          })),
+        },
+      ],
+    },
+  }
+}
+
+export const offreSeo = ({ offre, meta, detail, relatedOffers = [] } = {}) => {
+  if (!offre || !meta) {
+    return {
+      title: "Offre introuvable | JobAlert CI",
+      description:
+        "L'offre demandee est introuvable. Retournez a la liste des offres d'emploi sur JobAlert CI.",
+      path: "/offres",
+      image: "/screen.png",
+      imageAlt: "Offre introuvable sur JobAlert CI",
+      type: "website",
+      locale: "fr_CI",
+      noindex: true,
+    }
+  }
+
+  const title = `${offre.titre} — ${offre.entreprise} · ${offre.ville} | JobAlert CI`
+  const description = clampText(
+    detail?.intro
+      ? `${detail.intro} Offre ${offre.contrat} ${meta.label} a ${offre.ville}, collecte sur ${offre.source}.`
+      : `${offre.titre} chez ${offre.entreprise} a ${offre.ville}, offre ${offre.contrat} ${meta.label} collecte sur ${offre.source}.`
+  )
+
+  const keywords = joinKeywords(
+    offre.titre,
+    offre.entreprise,
+    offre.ville,
+    offre.contrat,
+    offre.source,
+    meta.label,
+    meta.keywords,
+    detail?.tags || []
+  )
+
+  const itemList = relatedOffers.slice(0, 8)
+
+  return {
+    title,
+    description,
+    path: `/offres/${offre.id}`,
+    image: "/screen.png",
+    imageAlt: `${offre.titre} chez ${offre.entreprise} sur JobAlert CI`,
+    keywords,
+    type: "website",
+    locale: "fr_CI",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": `${siteUrl}/offres/${offre.id}#webpage`,
+          url: `${siteUrl}/offres/${offre.id}`,
+          name: title,
+          description,
+          inLanguage: "fr-CI",
+          isPartOf: {
+            "@id": `${siteUrl}/#website`,
+          },
+          about: {
+            "@id": `${siteUrl}/#service`,
+          },
+          primaryImageOfPage: absoluteUrl("/screen.png"),
+        },
+        makeBreadcrumb([
+          { name: "Accueil", url: `${siteUrl}/` },
+          { name: "Offres d'emploi", url: `${siteUrl}/offres` },
+          { name: offre.titre, url: `${siteUrl}/offres/${offre.id}` },
+        ]),
+        ...(itemList.length
+          ? [
+              {
+                "@type": "ItemList",
+                "@id": `${siteUrl}/offres/${offre.id}#related`,
+                name: `Offres similaires a ${offre.titre}`,
+                itemListElement: itemList.map((offer, index) => ({
+                  "@type": "ListItem",
+                  position: index + 1,
+                  name: `${offer.titre} — ${offer.entreprise}`,
+                  url: `${siteUrl}/offres/${offer.id}`,
+                })),
+              },
+            ]
+          : []),
+      ],
+    },
+  }
+}
+
 export const filieresSeo = (filieres = []) => ({
   title: "Filières métiers | JobAlert CI",
   description:

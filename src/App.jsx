@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import Home from "./Pages/Home";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -7,14 +8,15 @@ import HowItWorks from "./Pages/HowItWorks";
 import { useEffect } from "react";
 import DetailsFiliere from "./Pages/Filieres/DetailsFiliere";
 import Filieres from "./Pages/Filieres";
+import Offres from "./Pages/Offres";
+import DetailsOffre from "./Pages/DetailsOffre";
+import BootLoader from "./components/BootLoader";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [pathname]);
-
   return null;
 };
 
@@ -25,25 +27,31 @@ const Layout = () => {
       <Outlet />
       <Footer />
     </>
-  )
-}
+  );
+};
 
 const App = () => {
+  const [ready, setReady] = useState(false);
+
   return (
     <TooltipProvider>
+      {!ready && <BootLoader onFinish={() => setReady(true)} />}
+
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="comment-ca-marche" element={<HowItWorks />} />
+            <Route path="offres" element={<Offres />} />
             <Route path="filieres" element={<Filieres />} />
             <Route path="filieres/:filiere" element={<DetailsFiliere />} />
+            <Route path="/offres/:id" element={<DetailsOffre />} />
           </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default App
+export default App;

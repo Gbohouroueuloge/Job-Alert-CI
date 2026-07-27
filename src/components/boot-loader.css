@@ -1,0 +1,76 @@
+/* ==================================================================
+   BootLoader JobAlert CI — transition "enveloppe" minimale
+   Flash orange → panneaux → blanc → site
+   ================================================================== */
+.bl-root {
+  position: fixed; inset: 0; z-index: 9999;
+  background: transparent;
+  overflow: hidden; isolation: isolate;
+}
+
+/* ---------- Écran blanc (révélé à l'ouverture) -------------------- */
+.bl-white { position: absolute; inset: 0; z-index: 0; background: #FFFFFF; opacity: 1; }
+.is-exit .bl-white { opacity: 0; transition: opacity 0.65s ease 1.05s; }
+
+/* ---------- Panneaux navy ----------------------------------------- */
+.bl-panel {
+  position: absolute; left: 0; right: 0; height: 50.6%; z-index: 1;
+  transition: transform 0.9s cubic-bezier(0.83, 0, 0.17, 1) 0.35s;
+  will-change: transform;
+}
+.bl-panel--top    { top: 0;    background: linear-gradient(180deg, #0C2440 0%, #0F2D4D 100%); }
+.bl-panel--bottom { bottom: 0; background: linear-gradient(180deg, #0F2D4D 0%, #0A1F38 100%); }
+.is-exit .bl-panel--top    { transform: translateY(-101%); }
+.is-exit .bl-panel--bottom { transform: translateY(101%); }
+
+/* ---------- Décor ambiant (subtil, fondu à la sortie) ------------- */
+.bl-bg { position: absolute; inset: 0; z-index: 2; transition: opacity 0.4s ease; pointer-events: none; }
+.is-exit .bl-bg { opacity: 0; }
+
+.bl-pattern {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+.bl-glow {
+  position: absolute; width: 62vmax; height: 62vmax; border-radius: 50%;
+  filter: blur(90px); opacity: .5;
+}
+.bl-glow--orange {
+  top: -22%; right: -18%;
+  background: radial-gradient(circle, rgba(245,166,35,.24), transparent 62%);
+  animation: bl-drift 13s ease-in-out infinite alternate;
+}
+.bl-glow--blue {
+  bottom: -26%; left: -20%;
+  background: radial-gradient(circle, rgba(70,96,131,.4), transparent 62%);
+  animation: bl-drift 17s ease-in-out infinite alternate-reverse;
+}
+@keyframes bl-drift {
+  from { transform: translate(0,0) scale(1); }
+  to   { transform: translate(4vmax,-3vmax) scale(1.12); }
+}
+
+/* ---------- Couture orange (charge puis flash) -------------------- */
+.bl-seam {
+  position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px; z-index: 3;
+  background: linear-gradient(90deg, transparent, #F5A623 30%, #FFD28A 50%, #F5A623 70%, transparent);
+  opacity: 0; transform: scaleX(0);
+  pointer-events: none;
+}
+.is-exit .bl-seam { animation: bl-seam-flare 0.9s ease forwards; }
+@keyframes bl-seam-flare {
+  0%   { opacity: .7; transform: scaleX(1); box-shadow: 0 0 38px 5px  rgba(245,166,35,.5); }
+  30%  { opacity: 1;  transform: scaleX(1); box-shadow: 0 0 60px 10px rgba(245,166,35,.75); }
+  100% { opacity: 0;  transform: scaleX(1); box-shadow: 0 0 100px 26px rgba(245,166,35,0); }
+}
+
+/* ---------- Accessibilité ----------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .bl-root *, .bl-root *::before, .bl-root *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .15s !important;
+  }
+}

@@ -1,163 +1,34 @@
-// src/pages/details-filiere/index.jsx
-import { Fragment, useEffect, useMemo, useRef, useState } from "react"
+
+import { Fragment, useMemo, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { AnimatePresence, animate, motion, useInView } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import {
-  ArrowRight, ArrowUpRight, ArrowUpDown, Bell, Bookmark, BookmarkCheck,
-  Briefcase, Building2, CalendarDays, Check, ChevronDown, ChevronLeft,
-  ChevronRight, Clock, Code2, Filter as FilterIcon,
-  GraduationCap, Handshake, HardHat, LayoutGrid, Layers, List, Mail, MapPin,
-  Megaphone, Radar, Search, SearchX, Send, ShieldCheck, SlidersHorizontal,
-  Sparkles, Sprout, Stethoscope, Truck, Users, UtensilsCrossed, X, Zap,
-  Calculator,
+  ArrowRight, ArrowUpRight, ArrowUpDown, Bell,
+  Briefcase, CalendarDays, Check, ChevronDown,
+  ChevronRight, Clock, Filter as FilterIcon,
+  GraduationCap, LayoutGrid, Layers, Mail,
+  Radar, Search, SearchX, Send, ShieldCheck, SlidersHorizontal,
+  Sparkles, X, Zap,
 } from "lucide-react"
-import { FaLinkedin } from "react-icons/fa6"
 import { cn } from "@/lib/utils"
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from "@/components/ui/tooltip"
-import {
-  HoverCard, HoverCardContent, HoverCardTrigger,
-} from "@/components/ui/hover-card"
-import {
-  Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle,
-} from "@/components/ui/drawer"
 import Seo from "@/components/seo/Seo"
-import { getImgSource } from "@/utils/utilsSource"
 import { filiereSeo } from "@/lib/seo"
+import {
+  CountUp, OfferCard, ChipSource, SourceLogo,
+  CheckRow, FilterPopover, MiniCalendar, ViewToggle, FiltersDrawer, OfferFilterGroups,
+  CtaLink,
+} from "@/components/shared"
+import { HUES } from "@/lib/hues"
+import { FILIERES_META, SOURCES, CONTRATS, EXPERIENCES, NIVEAUX, SORTS } from "@/lib/referentiels"
+import { startOfDay, addDays, sameDay, fmtDay } from "@/lib/dates"
+import useClickOutside from "@/hooks/use-click-outside"
 
 /* ════════════════════════════════════════════════════════════════════
   DONNÉES
 ════════════════════════════════════════════════════════════════════ */
-
-/* Palette par teinte — mêmes couleurs que le mega-menu du header */
-const HUES = {
-  sky: { dot: "bg-sky-500", tile: "bg-sky-500/10 text-sky-600", solid: "bg-sky-600", glow: "bg-sky-400/20", accent: "text-sky-600", hex: "#0ea5e9" },
-  fuchsia: { dot: "bg-fuchsia-500", tile: "bg-fuchsia-500/10 text-fuchsia-600", solid: "bg-fuchsia-600", glow: "bg-fuchsia-400/20", accent: "text-fuchsia-600", hex: "#d946ef" },
-  orange: { dot: "bg-orange-500", tile: "bg-orange-500/10 text-orange-600", solid: "bg-orange-600", glow: "bg-orange-400/20", accent: "text-orange-600", hex: "#f97316" },
-  emerald: { dot: "bg-emerald-500", tile: "bg-emerald-500/10 text-emerald-600", solid: "bg-emerald-600", glow: "bg-emerald-400/20", accent: "text-emerald-600", hex: "#10b981" },
-  violet: { dot: "bg-violet-500", tile: "bg-violet-500/10 text-violet-600", solid: "bg-violet-600", glow: "bg-violet-400/20", accent: "text-violet-600", hex: "#8b5cf6" },
-  amber: { dot: "bg-amber-500", tile: "bg-amber-500/10 text-amber-600", solid: "bg-amber-600", glow: "bg-amber-400/20", accent: "text-amber-600", hex: "#f59e0b" },
-  cyan: { dot: "bg-cyan-500", tile: "bg-cyan-500/10 text-cyan-600", solid: "bg-cyan-600", glow: "bg-cyan-400/20", accent: "text-cyan-600", hex: "#06b6d4" },
-  rose: { dot: "bg-rose-500", tile: "bg-rose-500/10 text-rose-600", solid: "bg-rose-600", glow: "bg-rose-400/20", accent: "text-rose-600", hex: "#f43f5e" },
-  blue: { dot: "bg-blue-500", tile: "bg-blue-500/10 text-blue-600", solid: "bg-blue-600", glow: "bg-blue-400/20", accent: "text-blue-600", hex: "#3b82f6" },
-  indigo: { dot: "bg-indigo-500", tile: "bg-indigo-500/10 text-indigo-600", solid: "bg-indigo-600", glow: "bg-indigo-400/20", accent: "text-indigo-600", hex: "#6366f1" },
-  teal: { dot: "bg-teal-500", tile: "bg-teal-500/10 text-teal-600", solid: "bg-teal-600", glow: "bg-teal-400/20", accent: "text-teal-600", hex: "#14b8a6" },
-  lime: { dot: "bg-lime-500", tile: "bg-lime-500/10 text-lime-600", solid: "bg-lime-600", glow: "bg-lime-400/20", accent: "text-lime-600", hex: "#84cc16" },
-  red: { dot: "bg-red-500", tile: "bg-red-500/10 text-red-600", solid: "bg-red-600", glow: "bg-red-400/20", accent: "text-red-600", hex: "#ef4444" },
-}
-
-const FILIERES_META = [
-  {
-    code: "tech-dev", label: "Tech & Dev", icon: Code2, hue: "sky", actives: 34, abonnes: 1840,
-    tagline: "Développement, data, infra & produit digital",
-    desc: "Du full-stack à la data, en passant par le mobile et le cloud : la filière la plus dynamique du marché ivoirien.",
-    keywords: ["développeur", "ingénieur logiciel", "full-stack", "devops", "data", "mobile"],
-    specialites: ["Développement web", "Data & IA", "Cloud & Infra", "Mobile"]
-  },
-  {
-    code: "marketing-com", label: "Marketing & Com", icon: Megaphone, hue: "fuchsia", actives: 21, abonnes: 1120,
-    tagline: "Marque, contenu, médias & growth",
-    desc: "Communication, brand et création : les métiers qui donnent une voix aux entreprises de Côte d'Ivoire.",
-    keywords: ["communication", "community", "marketing", "graphiste", "brand"],
-    specialites: ["Communication", "Marketing digital", "Création & Design", "Médias"]
-  },
-  {
-    code: "commercial-vente", label: "Commercial & Vente", icon: Handshake, hue: "orange", actives: 18, abonnes: 960,
-    tagline: "Vente, grands comptes & développement d'affaires",
-    desc: "Terrain, négociation et grands comptes : le moteur de la croissance des entreprises ivoiriennes.",
-    keywords: ["commercial", "vente", "business developer", "grands comptes"],
-    specialites: ["Vente terrain", "B2B & Grands comptes", "Retail", "Téléconseil"]
-  },
-  {
-    code: "comptabilite-finance", label: "Comptabilité & Finance", icon: Calculator, hue: "emerald", actives: 16, abonnes: 1310,
-    tagline: "Finance, audit, contrôle & gestion",
-    desc: "Banques, cabinets et grands groupes : la place financière d'Abidjan embauche.",
-    keywords: ["comptable", "audit", "contrôle de gestion", "finance"],
-    specialites: ["Comptabilité", "Audit", "Contrôle de gestion", "Banque"]
-  },
-  {
-    code: "ressources-humaines", label: "Ressources Humaines", icon: Users, hue: "violet", actives: 15, abonnes: 890,
-    tagline: "Recrutement, paie, formation & développement RH",
-    desc: "Recrutement, paie et formation : celles et ceux qui font grandir les équipes.",
-    keywords: ["recrutement", "rh", "paie", "formation", "ressources humaines"],
-    specialites: ["Recrutement", "Paie & ADP", "Formation", "Gestion RH"]
-  },
-  {
-    code: "btp-genie-civil", label: "BTP & Génie Civil", icon: HardHat, hue: "amber", actives: 14, abonnes: 720,
-    tagline: "Chantiers, génie civil & infrastructures",
-    desc: "Des chantiers d'Abidjan aux routes de l'intérieur : les métiers qui construisent la Côte d'Ivoire.",
-    keywords: ["chantier", "génie civil", "conducteur de travaux", "topographe"],
-    specialites: ["Conduite de travaux", "Études & ingénierie", "Chantier", "Topographie"]
-  },
-  {
-    code: "logistique-transport", label: "Logistique & Transport", icon: Truck, hue: "cyan", actives: 12, abonnes: 640,
-    tagline: "Transit, douane, supply chain & distribution",
-    desc: "Transit, douane et supply chain : la colonne vertébrale du premier hub portuaire d'Afrique de l'Ouest.",
-    keywords: ["logistique", "transit", "douane", "supply chain", "magasinier"],
-    specialites: ["Transit & Douane", "Supply chain", "Transport", "Magasinage"]
-  },
-  {
-    code: "sante-medical", label: "Santé & Médical", icon: Stethoscope, hue: "rose", actives: 11, abonnes: 830,
-    tagline: "Soins, pharma, labo & professions médicales",
-    desc: "Soignants, pharmaciens et techniciens : les métiers au service de la santé des Ivoiriens.",
-    keywords: ["infirmier", "médecin", "pharmacien", "laboratoire", "sage-femme"],
-    specialites: ["Soins infirmiers", "Médecine", "Pharmacie", "Laboratoire"]
-  },
-  {
-    code: "administration", label: "Administration", icon: Building2, hue: "blue", actives: 10, abonnes: 580,
-    tagline: "Assistanat, gestion & services généraux",
-    desc: "Le socle de toute organisation : assistanat, office management et services généraux.",
-    keywords: ["assistant", "office manager", "secrétaire", "services généraux"],
-    specialites: ["Assistanat de direction", "Office management", "Secrétariat", "Services généraux"]
-  },
-  {
-    code: "education-formation", label: "Éducation & Formation", icon: GraduationCap, hue: "indigo", actives: 9, abonnes: 510,
-    tagline: "Enseignement, pédagogie & formation professionnelle",
-    desc: "Écoles, ONG et instituts : transmettre et former, un secteur qui se réinvente.",
-    keywords: ["enseignant", "formateur", "pédagogie", "professeur"],
-    specialites: ["Enseignement", "Formation professionnelle", "Pédagogie", "Éducation spécialisée"]
-  },
-  {
-    code: "hotellerie-restauration", label: "Hôtellerie & Restauration", icon: UtensilsCrossed, hue: "teal", actives: 8, abonnes: 450,
-    tagline: "Cuisine, salle, hébergement & hospitalité",
-    desc: "Hôtels, restaurants et traiteurs : l'hospitalité ivoirienne en plein essor.",
-    keywords: ["chef", "serveur", "hôtellerie", "restauration", "barman"],
-    specialites: ["Cuisine", "Salle & Bar", "Hébergement", "Traiteur"]
-  },
-  {
-    code: "agriculture-agrobusiness", label: "Agriculture & Agrobusiness", icon: Sprout, hue: "lime", actives: 7, abonnes: 390,
-    tagline: "Du champ à l'usine : cacao, cajou & agro-industrie",
-    desc: "La filière cacao-cajou et l'agro-industrie embauchent, du champ à l'usine.",
-    keywords: ["agronome", "agricole", "plantation", "agro-industrie"],
-    specialites: ["Agronomie", "Production", "Transformation", "Plantation"]
-  },
-  {
-    code: "securite-gardiennage", label: "Sécurité & Gardiennage", icon: ShieldCheck, hue: "red", actives: 6, abonnes: 310,
-    tagline: "Sûreté, gardiennage & protection des sites",
-    desc: "Entreprises et sites sensibles : des métiers de confiance, en CDI comme en mission.",
-    keywords: ["agent de sécurité", "gardiennage", "sûreté", "cynophile"],
-    specialites: ["Gardiennage", "Sûreté aéroportuaire", "Cynophile", "Supervision"]
-  },
-]
-
-const SOURCES = [
-  { code: "EmploiDakar CI", bg: "#0F2D4D", short: "ED" },
-  { code: "GoAfrica", bg: "#0F766E", short: "GA" },
-  { code: "Novojob", bg: "#B45309", short: "NJ" },
-  { code: "LinkedIn", bg: "#0A66C2", short: "in", linkedin: true },
-]
-
-const CONTRATS = ["CDI", "CDD", "Stage", "Mission", "Alternance"]
-const EXPERIENCES = ["Débutant", "1-3 ans", "3-5 ans", "5 ans+"]
-const NIVEAUX = ["Bac", "Bac+2", "Bac+3", "Bac+5", "Bac+8"]
-
-const SORTS = [
-  { k: "recent", l: "Plus récentes" },
-  { k: "old", l: "Plus anciennes" },
-  { k: "az", l: "Titre A → Z" },
-  { k: "ent", l: "Entreprise A → Z" },
-]
 
 let oid = 0
 const O = (titre, entreprise, ville, contrat, source, jours, niveau, experience, specialite) =>
@@ -264,293 +135,6 @@ const AVATARS = [
   { init: "SD", cls: "bg-fuchsia-600" },
   { init: "YK", cls: "bg-amber-600" },
 ]
-
-/* ════════════════════════════════════════════════════════════════════
-  OUTILS
-════════════════════════════════════════════════════════════════════ */
-
-const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x }
-const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x }
-const sameDay = (a, b) => !!a && !!b &&
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
-const fmtDay = (d) => d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
-
-const publieLabel = (jours) =>
-  jours === 0 ? "Aujourd'hui" : jours === 1 ? "Hier" : `Il y a ${jours} j`
-
-const useClickOutside = (ref, onOutside) => {
-  useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) onOutside()
-    }
-    document.addEventListener("mousedown", handler)
-    document.addEventListener("touchstart", handler)
-    return () => {
-      document.removeEventListener("mousedown", handler)
-      document.removeEventListener("touchstart", handler)
-    }
-  }, [ref, onOutside])
-}
-
-const CountUp = ({ to, suffix = "" }) => {
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: "-60px" })
-  const [value, setValue] = useState(0)
-  useEffect(() => {
-    if (!inView) return
-    const controls = animate(0, to, {
-      duration: 1.3,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate: (v) => setValue(Math.round(v)),
-    })
-    return () => controls.stop()
-  }, [inView, to])
-  return (
-    <span ref={ref}>
-      {value.toLocaleString("fr-FR")}{suffix}
-    </span>
-  )
-}
-
-/* ════════════════════════════════════════════════════════════════════
-  ATOMES
-════════════════════════════════════════════════════════════════════ */
-
-const SourceLogo = ({ code, className = "size-4 text-[9px]" }) => {
-  const s = SOURCES.find((x) => x.code === code)
-  return (
-    <span
-      className={cn("grid shrink-0 place-items-center rounded font-heading font-extrabold text-white", className)}
-
-    >
-      {s.linkedin ? <FaLinkedin className="size-2.5" style={{ background: s.bg }} /> : <img src={getImgSource(code)} alt={code} className="h-full size-5 object-contain" />}
-    </span>
-  )
-}
-
-const ChipSource = ({ source }) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <span className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-outline-variant/50 bg-surface-container-low/60 px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant">
-        {source === "LinkedIn"
-          ? <FaLinkedin className="size-3 text-[#0A66C2]" />
-          : <img src={getImgSource(source)} alt={source} className="h-full size-5 object-contain" />}
-        {source}
-      </span>
-    </TooltipTrigger>
-    <TooltipContent side="top">Collectée sur {source} ce matin</TooltipContent>
-  </Tooltip>
-)
-
-const CheckRow = ({ checked, onToggle, label, count, lead }) => (
-  <button
-    onClick={onToggle}
-    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-surface-container-low"
-  >
-    <span
-      className={cn(
-        "grid size-4.5 shrink-0 place-items-center rounded-[5px] border transition-all duration-200",
-        checked ? "border-brand-navy bg-brand-navy" : "border-outline-variant bg-white"
-      )}
-    >
-      <AnimatePresence>
-        {checked && (
-          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }}>
-            <Check className="size-3 text-white" strokeWidth={3.5} />
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </span>
-    {lead}
-    <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-on-surface">{label}</span>
-    {count != null && <span className="text-[11px] font-semibold text-muted-foreground">{count}</span>}
-  </button>
-)
-
-const FilterPopover = ({ label, icon: Icon, count = 0, open, onToggle, onClose, align = "left", panelClassName, children }) => {
-  const ref = useRef(null)
-  useClickOutside(ref, onClose)
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={onToggle}
-        className={cn(
-          "inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition-all duration-200",
-          count > 0 || open
-            ? "border-brand-navy bg-brand-navy text-white shadow-soft"
-            : "border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant hover:border-brand-navy/40 hover:text-brand-navy"
-        )}
-      >
-        {Icon && <Icon className="size-3.5" />}
-        {label}
-        {count > 0 && (
-          <span className={cn(
-            "grid size-4 place-items-center rounded-full text-[10px] font-black",
-            open ? "bg-white text-brand-navy" : "bg-brand-orange text-white"
-          )}>
-            {count}
-          </span>
-        )}
-        <ChevronDown className={cn("size-3.5 transition-transform duration-200", open && "rotate-180")} />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className={cn(
-              "absolute top-full z-50 mt-2 w-60 rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-2.5 shadow-hover",
-              align === "right" ? "right-0" : "left-0",
-              panelClassName
-            )}
-          >
-            {children}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-/* Mini-calendrier de période */
-const MOIS_FR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
-const JOURS_FR = ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"]
-
-const MiniCalendar = ({ range, onChange, hue }) => {
-  const today = startOfDay(new Date())
-  const [view, setView] = useState(() => new Date((range.end || range.start || today).getFullYear(), (range.end || range.start || today).getMonth(), 1))
-  const year = view.getFullYear()
-  const month = view.getMonth()
-  const offset = (new Date(year, month, 1).getDay() + 6) % 7
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const cells = [
-    ...Array.from({ length: offset }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1)),
-  ]
-  const { start, end } = range
-  const inRange = (d) => start && end && d > start && d < end
-  const atBound = (d) => sameDay(d, start) || sameDay(d, end)
-  const monthStart = new Date(year, month, 1)
-  const canPrev = monthStart <= addDays(today, -today.getDate() + 1) && !sameDay(monthStart, new Date(today.getFullYear(), today.getMonth(), 1))
-  const canNext = monthStart < new Date(today.getFullYear(), today.getMonth(), 1)
-
-  const pick = (d) => {
-    if (!start || (start && end)) return onChange({ start: d, end: null })
-    if (d < start) return onChange({ start: d, end: start })
-    onChange({ start, end: d })
-  }
-
-  const presets = [
-    { l: "Aujourd'hui", r: { start: today, end: today } },
-    { l: "3 jours", r: { start: addDays(today, -2), end: today } },
-    { l: "7 jours", r: { start: addDays(today, -6), end: today } },
-    { l: "30 jours", r: { start: addDays(today, -29), end: today } },
-  ]
-
-  return (
-    <div>
-      <div className="flex items-center justify-between px-1">
-        <button
-          onClick={() => setView(new Date(year, month - 1, 1))}
-          disabled={!canPrev}
-          aria-label="Mois précédent"
-          className="grid size-7 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-container-low hover:text-brand-navy disabled:pointer-events-none disabled:opacity-30"
-        >
-          <ChevronLeft className="size-4" />
-        </button>
-        <p className="font-heading text-[13px] font-bold text-brand-navy">
-          {MOIS_FR[month]} <span className="font-medium text-muted-foreground">{year}</span>
-        </p>
-        <button
-          onClick={() => setView(new Date(year, month + 1, 1))}
-          disabled={!canNext}
-          aria-label="Mois suivant"
-          className="grid size-7 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-container-low hover:text-brand-navy disabled:pointer-events-none disabled:opacity-30"
-        >
-          <ChevronRight className="size-4" />
-        </button>
-      </div>
-
-      <div className="mt-2 grid grid-cols-7 gap-y-0.5 text-center">
-        {JOURS_FR.map((d) => (
-          <span key={d} className="py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{d}</span>
-        ))}
-        {cells.map((d, i) =>
-          !d ? (
-            <span key={`e${i}`} />
-          ) : (
-            <button
-              key={d.toISOString()}
-              onClick={() => pick(d)}
-              disabled={d > today}
-              className={cn(
-                "relative mx-auto grid size-8 place-items-center rounded-full text-xs font-semibold transition-all duration-150",
-                atBound(d)
-                  ? cn("text-white shadow-sm", hue.solid)
-                  : inRange(d)
-                    ? "bg-surface-container-high text-brand-navy"
-                    : "text-on-surface hover:bg-surface-container-low",
-                d > today && "pointer-events-none opacity-25",
-                sameDay(d, today) && !atBound(d) && "ring-1 ring-brand-orange"
-              )}
-            >
-              {d.getDate()}
-            </button>
-          )
-        )}
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-1.5 border-t border-outline-variant/40 pt-3">
-        {presets.map((p) => (
-          <button
-            key={p.l}
-            onClick={() => onChange(p.r)}
-            className="rounded-full border border-outline-variant/60 px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant transition-colors hover:border-brand-navy hover:text-brand-navy"
-          >
-            {p.l}
-          </button>
-        ))}
-        {(start || end) && (
-          <button
-            onClick={() => onChange({ start: null, end: null })}
-            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold text-brand-orange transition-colors hover:bg-brand-orange/10"
-          >
-            <X className="size-3" /> Effacer
-          </button>
-        )}
-      </div>
-
-      <p className="mt-2.5 rounded-lg bg-surface-container-low px-3 py-2 text-[11px] font-semibold text-on-surface-variant">
-        <CalendarDays className="mr-1.5 inline size-3.5 -translate-y-px text-brand-orange" />
-        {start && end
-          ? `Du ${fmtDay(start)} au ${fmtDay(end)}`
-          : start
-            ? `À partir du ${fmtDay(start)} — choisissez une fin`
-            : "Toutes les dates"}
-      </p>
-    </div>
-  )
-}
-
-const ViewToggle = ({ view, onChange }) => (
-  <div className="flex shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-0.5">
-    {[{ k: "list", I: List }, { k: "grid", I: LayoutGrid }].map(({ k, I }) => (
-      <button
-        key={k}
-        onClick={() => onChange(k)}
-        aria-label={k === "list" ? "Vue liste" : "Vue grille"}
-        className={cn(
-          "rounded-md p-1.5 transition-all duration-200",
-          view === k ? "bg-brand-navy text-white shadow-soft" : "text-muted-foreground hover:text-brand-navy"
-        )}
-      >
-        <I className="size-4" />
-      </button>
-    ))}
-  </div>
-)
 
 /* ════════════════════════════════════════════════════════════════════
   HERO — identité de la filière + récap du jour
@@ -815,13 +399,10 @@ const HeroFiliere = ({ meta, hue, offres }) => {
                 <Bell className="size-5 transition-transform duration-300 group-hover:rotate-12" />
                 Créer une alerte {meta.label}
               </Link>
-              <Link
-                to="/filieres"
-                className="group inline-flex items-center justify-center gap-2 rounded-lg border border-brand-navy/15 bg-white/70 px-6 py-3.5 text-base font-semibold text-brand-navy backdrop-blur-sm transition-all duration-300 hover:border-brand-navy/35 hover:bg-white"
-              >
-                <LayoutGrid className="size-4" />
+
+              <CtaLink to="/comment-ca-marche" variant="secondary" icon={LayoutGrid}>
                 Toutes les filieres
-              </Link>
+              </CtaLink>
             </motion.div>
 
             {/* Stats vivantes (test1) */}
@@ -852,330 +433,6 @@ const HeroFiliere = ({ meta, hue, offres }) => {
     </section>
   )
 }
-
-/* ════════════════════════════════════════════════════════════════════
-  Card OFFRE
-════════════════════════════════════════════════════════════════════ */
-
-const CompanyHover = ({ offre }) => (
-  <HoverCard openDelay={200}>
-    <HoverCardTrigger asChild>
-      <button className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
-        <Building2 className="size-3.5" />
-        <span className="font-medium">{offre.entreprise}</span>
-      </button>
-    </HoverCardTrigger>
-    <HoverCardContent align="start" className="w-64">
-      <div className="flex gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-navy font-heading text-xs font-extrabold text-white">
-          {offre.entreprise.split(" ").map((w) => w[0]).slice(0, 2).join("")}
-        </span>
-        <div>
-          <p className="font-heading text-sm font-semibold">{offre.entreprise}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">Recrute via {offre.source}</p>
-          <p className="text-xs text-muted-foreground">
-            {Object.values(OFFRES).flat().filter((x) => x.entreprise === offre.entreprise).length} offre(s) active(s) sur JobAlert CI
-          </p>
-        </div>
-      </div>
-    </HoverCardContent>
-  </HoverCard>
-)
-
-const OfferCard = ({ offre, index, view, hue, filiere, saved, onToggleSave }) => {
-  const isNew = offre.jours === 0
-
-  const bookmark = (
-    <motion.button
-      whileTap={{ scale: 0.75 }}
-      onClick={() => onToggleSave(offre.id)}
-      aria-label="Enregistrer l'offre"
-      className="shrink-0 rounded-lg border border-outline-variant/50 bg-white p-2 text-muted-foreground transition-colors hover:border-brand-orange/50 hover:text-brand-orange"
-    >
-      {saved ? <BookmarkCheck className="size-4 text-brand-orange" /> : <Bookmark className="size-4" />}
-    </motion.button>
-  )
-
-  const newBadge = isNew && (
-    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-orange/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#B45309]">
-      <span className="relative flex size-1.5">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-orange opacity-75" />
-        <span className="relative inline-flex size-1.5 rounded-full bg-brand-orange" />
-      </span>
-      Nouveau
-    </span>
-  )
-
-  const metaChips = (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className="inline-flex items-center gap-1 rounded-md bg-surface-container-low px-2 py-0.5 text-[11px] font-semibold text-on-surface-variant">
-        <GraduationCap className="size-3" />
-        {offre.niveau}
-      </span>
-      <span className="inline-flex items-center gap-1 rounded-md bg-surface-container-low px-2 py-0.5 text-[11px] font-semibold text-on-surface-variant">
-        <Briefcase className="size-3" />
-        {offre.experience}
-      </span>
-      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-container-low px-2 py-0.5 text-[11px] font-semibold text-on-surface-variant">
-        <span className={cn("size-1.5 rounded-full", hue.dot)} />
-        {offre.specialite}
-      </span>
-    </div>
-  )
-
-  if (view === "grid") {
-    return (
-      <motion.article
-        layout
-        initial={{ opacity: 0, y: 18 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-30px" }}
-        exit={{ opacity: 0, scale: 0.97 }}
-        transition={{ duration: 0.45, delay: (index % 6) * 0.05, ease: [0.22, 1, 0.36, 1] }}
-        className="group flex flex-col rounded-xl border border-outline-variant/40 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-hover"
-        style={{ borderTop: `3px solid ${hue.hex}` }}
-      >
-        <div className="flex items-center justify-between gap-2">
-          <ChipSource source={offre.source} />
-          <div className="flex items-center gap-2">{newBadge}{bookmark}</div>
-        </div>
-        <Link
-          to={`/filiere/${filiere}/${offre.id}`}
-          className="mt-3 font-heading text-base font-bold leading-snug text-brand-navy transition-colors hover:text-brand-orange"
-        >
-          {offre.titre}
-        </Link>
-        <div className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Building2 className="size-3.5" />
-          <span className="font-medium">{offre.entreprise}</span>
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded-md bg-surface-container-low px-2 py-0.5">
-            <MapPin className="size-3" />
-            {offre.ville}
-          </span>
-          <span className="rounded-md bg-surface-container-low px-2 py-0.5 font-semibold">{offre.contrat}</span>
-        </div>
-        <div className="mt-3">{metaChips}</div>
-        <div className="mt-4 flex items-center justify-between border-t border-outline-variant/40 pt-3 text-xs text-muted-foreground">
-          <span className={cn("font-semibold", isNew && "text-brand-orange")}>{publieLabel(offre.jours)}</span>
-
-          <div className="flex items-center gap-1.5">
-            <Link
-              to={`/filieres/${filiere}/${offre.id}`}
-              className={cn("inline-flex h-8 items-center gap-1 rounded-md px-2.5 text-xs font-bold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98]", hue.solid)}
-            >
-              Voir l'offre
-            </Link>
-
-            <a
-              href="#offre"
-              onClick={(e) => e.preventDefault()}
-              className="inline-flex items-center gap-1 font-heading font-bold text-[#B45309] transition-colors hover:underline"
-            >
-              Postuler
-              <ArrowUpRight className="size-3.5 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-            </a>
-          </div>
-        </div>
-      </motion.article>
-    )
-  }
-
-  const d = addDays(new Date(), -offre.jours)
-
-  return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.45, delay: (index % 8) * 0.05, ease: [0.22, 1, 0.36, 1] }}
-      className="group rounded-xl border border-outline-variant/40 bg-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-hover"
-      style={{ borderLeft: `3px solid ${hue.hex}` }}
-    >
-      <div className="flex gap-4 p-4 sm:p-5">
-        {/* Rail date */}
-        <div className="hidden w-14 shrink-0 flex-col items-center justify-center rounded-lg border border-outline-variant/40 bg-surface-container-low/70 sm:flex">
-          {isNew ? (
-            <>
-              <span className="font-heading text-sm font-extrabold text-brand-orange">AUJ</span>
-              <Clock className="mt-1 size-3.5 text-brand-orange" />
-            </>
-          ) : (
-            <>
-              <span className="font-heading text-xl font-extrabold leading-none text-brand-navy">{d.getDate()}</span>
-              <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {d.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "")}
-              </span>
-            </>
-          )}
-        </div>
-
-        {/* Contenu */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  to={`/filiere/${filiere}/${offre.id}`}
-                  className="font-heading text-base font-bold leading-snug text-brand-navy transition-colors hover:text-brand-orange sm:text-lg"
-                >
-                  {offre.titre}
-                </Link>
-                {newBadge}
-              </div>
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
-                <CompanyHover offre={offre} />
-                <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="size-3.5" />
-                  {offre.ville}
-                </span>
-                <span className="rounded-md border border-outline-variant/60 px-2 py-0.5 text-xs font-semibold text-on-surface-variant">
-                  {offre.contrat}
-                </span>
-              </div>
-            </div>
-            {bookmark}
-          </div>
-
-          <div className="mt-3">{metaChips}</div>
-
-          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <ChipSource source={offre.source} />
-              <span className={cn("text-xs font-semibold", isNew ? "text-brand-orange" : "text-muted-foreground")}>
-                {publieLabel(offre.jours)}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <Link
-                to={`/filieres/${filiere}/${offre.id}`}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md px-3.5 text-xs font-bold text-white bg-secondary-container shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98]"
-              >
-                Voir l'offre
-              </Link>
-
-              <a
-                href="#offre"
-                onClick={(e) => e.preventDefault()}
-                className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-md px-3.5 text-xs font-bold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98]",
-                  hue.solid
-                )}
-              >
-                Postuler
-                <ArrowUpRight className="size-3.5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.article>
-  )
-}
-
-/* ════════════════════════════════════════════════════════════════════
-  FILTRES — groupes partagés desktop (popovers) / mobile (drawer)
-════════════════════════════════════════════════════════════════════ */
-
-const FilterGroup = ({ title, icon: Icon, children, action }) => (
-  <div>
-    <div className="mb-1.5 flex items-center justify-between px-1">
-      <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-        {Icon && <Icon className="size-3.5 text-brand-orange" />}
-        {title}
-      </p>
-      {action}
-    </div>
-    {children}
-  </div>
-)
-
-const FilterGroups = ({ meta, hue, filters, toggle, counts, onPeriod }) => (
-  <div className="flex flex-col gap-5">
-    <FilterGroup title="Source" icon={Layers}>
-      {SOURCES.map((s) => (
-        <CheckRow
-          key={s.code}
-          checked={filters.sources.has(s.code)}
-          onToggle={() => toggle("sources", s.code)}
-          label={s.code}
-          count={counts.sources[s.code] || 0}
-          lead={<SourceLogo code={s.code} className="size-5 rounded text-[8px]" />}
-        />
-      ))}
-    </FilterGroup>
-
-    <FilterGroup title="Spécialité" icon={Sparkles}>
-      {meta.specialites.map((sp) => (
-        <CheckRow
-          key={sp}
-          checked={filters.specialites.has(sp)}
-          onToggle={() => toggle("specialites", sp)}
-          label={sp}
-          count={counts.specialites[sp] || 0}
-          lead={<span className={cn("size-2 shrink-0 rounded-full", hue.dot)} />}
-        />
-      ))}
-    </FilterGroup>
-
-    <FilterGroup title="Type d'emploi" icon={Briefcase}>
-      {CONTRATS.map((c) => (
-        <CheckRow
-          key={c}
-          checked={filters.contrats.has(c)}
-          onToggle={() => toggle("contrats", c)}
-          label={c}
-          count={counts.contrats[c] || 0}
-        />
-      ))}
-    </FilterGroup>
-
-    <FilterGroup title="Expérience" icon={Zap}>
-      {EXPERIENCES.map((x) => (
-        <CheckRow
-          key={x}
-          checked={filters.experiences.has(x)}
-          onToggle={() => toggle("experiences", x)}
-          label={x}
-          count={counts.experiences[x] || 0}
-        />
-      ))}
-    </FilterGroup>
-
-    <FilterGroup title="Niveau d'études" icon={GraduationCap}>
-      {NIVEAUX.map((n) => (
-        <CheckRow
-          key={n}
-          checked={filters.niveaux.has(n)}
-          onToggle={() => toggle("niveaux", n)}
-          label={n}
-          count={counts.niveaux[n] || 0}
-        />
-      ))}
-    </FilterGroup>
-
-    <FilterGroup
-      title="Date de publication"
-      icon={CalendarDays}
-      action={
-        (filters.period.start || filters.period.end) && (
-          <button
-            onClick={() => onPeriod({ start: null, end: null })}
-            className="text-[11px] font-bold text-brand-orange hover:underline"
-          >
-            Effacer
-          </button>
-        )
-      }
-    >
-      <MiniCalendar range={filters.period} onChange={onPeriod} hue={hue} />
-    </FilterGroup>
-  </div>
-)
 
 /* ════════════════════════════════════════════════════════════════════
   PAGE
@@ -1493,350 +750,310 @@ const DetailsFiliere = () => {
       <main>
         <HeroFiliere meta={meta} hue={hue} offres={offres} />
 
-      {/* ═══════════ Barre de filtres sticky ═══════════ */}
-      <div className="sticky top-1/10 z-40 border-b border-outline-variant/40 bg-background/85 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-6 py-3 md:px-12">
-          {/* Desktop */}
-          <div className="hidden flex-wrap items-center gap-2 lg:flex">
-            <div className="relative w-56">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={filters.query}
-                onChange={(e) => setFilters((p) => ({ ...p, query: e.target.value }))}
-                placeholder="Rechercher un poste, une entreprise…"
-                aria-label="Rechercher"
-                className="h-9 w-full rounded-lg border border-outline-variant/60 bg-surface-container-lowest pl-9 pr-8 text-[13px] outline-none transition-all placeholder:text-muted-foreground/70 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/10"
-              />
-              {filters.query && (
-                <button
-                  onClick={() => setFilters((p) => ({ ...p, query: "" }))}
-                  aria-label="Effacer la recherche"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-brand-navy"
-                >
-                  <X className="size-3.5" />
-                </button>
-              )}
-            </div>
-
-            <FilterPopover label="Sources" icon={Layers} count={filters.sources.size} {...pop("sources")}>
-              {SOURCES.map((s) => (
-                <CheckRow
-                  key={s.code}
-                  checked={filters.sources.has(s.code)}
-                  onToggle={() => toggle("sources", s.code)}
-                  label={s.code}
-                  count={counts.sources[s.code] || 0}
-                  lead={<SourceLogo code={s.code} className="size-5 rounded text-[8px]" />}
+        {/* ═══════════ Barre de filtres sticky ═══════════ */}
+        <div className="sticky top-1/10 z-40 border-b border-outline-variant/40 bg-background/85 backdrop-blur-md">
+          <div className="mx-auto max-w-7xl px-6 py-3 md:px-12">
+            {/* Desktop */}
+            <div className="hidden flex-wrap items-center gap-2 lg:flex">
+              <div className="relative w-56">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={filters.query}
+                  onChange={(e) => setFilters((p) => ({ ...p, query: e.target.value }))}
+                  placeholder="Rechercher un poste, une entreprise…"
+                  aria-label="Rechercher"
+                  className="h-9 w-full rounded-lg border border-outline-variant/60 bg-surface-container-lowest pl-9 pr-8 text-[13px] outline-none transition-all placeholder:text-muted-foreground/70 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/10"
                 />
-              ))}
-            </FilterPopover>
-
-            <FilterPopover label="Spécialité" icon={Sparkles} count={filters.specialites.size} {...pop("spec")}>
-              {meta.specialites.map((sp) => (
-                <CheckRow
-                  key={sp}
-                  checked={filters.specialites.has(sp)}
-                  onToggle={() => toggle("specialites", sp)}
-                  label={sp}
-                  count={counts.specialites[sp] || 0}
-                  lead={<span className={cn("size-2 shrink-0 rounded-full", hue.dot)} />}
-                />
-              ))}
-            </FilterPopover>
-
-            <FilterPopover label="Contrat" icon={Briefcase} count={filters.contrats.size} {...pop("contrat")}>
-              {CONTRATS.map((c) => (
-                <CheckRow key={c} checked={filters.contrats.has(c)} onToggle={() => toggle("contrats", c)} label={c} count={counts.contrats[c] || 0} />
-              ))}
-            </FilterPopover>
-
-            <FilterPopover label="Expérience" icon={Zap} count={filters.experiences.size} {...pop("exp")}>
-              {EXPERIENCES.map((x) => (
-                <CheckRow key={x} checked={filters.experiences.has(x)} onToggle={() => toggle("experiences", x)} label={x} count={counts.experiences[x] || 0} />
-              ))}
-            </FilterPopover>
-
-            <FilterPopover label="Niveau" icon={GraduationCap} count={filters.niveaux.size} {...pop("niveau")}>
-              {NIVEAUX.map((n) => (
-                <CheckRow key={n} checked={filters.niveaux.has(n)} onToggle={() => toggle("niveaux", n)} label={n} count={counts.niveaux[n] || 0} />
-              ))}
-            </FilterPopover>
-
-            <FilterPopover
-              label={periodLabel}
-              icon={CalendarDays}
-              count={filters.period.start || filters.period.end ? 1 : 0}
-              align="right"
-              panelClassName="w-[19.5rem] p-3"
-              {...pop("period")}
-            >
-              <MiniCalendar range={filters.period} onChange={setPeriod} hue={hue} />
-            </FilterPopover>
-
-            <div className="ml-auto flex items-center gap-2.5">
-              <span className="hidden text-xs text-muted-foreground xl:inline">
-                <strong className="font-heading text-sm font-bold text-brand-navy">{filtered.length}</strong> offre{filtered.length > 1 ? "s" : ""}
-              </span>
-
-              {/* Tri */}
-              <div ref={sortRef} className="relative">
-                <button
-                  onClick={() => setOpenPop((p) => (p === "sort" ? null : "sort"))}
-                  className={cn(
-                    "inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition-all duration-200",
-                    openPop === "sort"
-                      ? "border-brand-navy bg-brand-navy text-white"
-                      : "border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant hover:border-brand-navy/40 hover:text-brand-navy"
-                  )}
-                >
-                  <ArrowUpDown className="size-3.5" />
-                  {SORTS.find((s) => s.k === sort).l}
-                  <ChevronDown className={cn("size-3.5 transition-transform duration-200", openPop === "sort" && "rotate-180")} />
-                </button>
-                <AnimatePresence>
-                  {openPop === "sort" && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                      transition={{ duration: 0.18 }}
-                      className="absolute right-0 top-full z-50 mt-2 w-48 rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-1.5 shadow-hover"
-                    >
-                      {SORTS.map((s) => (
-                        <button
-                          key={s.k}
-                          onClick={() => { setSort(s.k); setOpenPop(null) }}
-                          className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] font-medium transition-colors hover:bg-surface-container-low"
-                        >
-                          {s.l}
-                          {sort === s.k && <Check className="size-3.5 text-brand-orange" strokeWidth={3} />}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {filters.query && (
+                  <button
+                    onClick={() => setFilters((p) => ({ ...p, query: "" }))}
+                    aria-label="Effacer la recherche"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-brand-navy"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
               </div>
 
+              <FilterPopover label="Sources" icon={Layers} count={filters.sources.size} {...pop("sources")}>
+                {SOURCES.map((s) => (
+                  <CheckRow
+                    key={s.code}
+                    checked={filters.sources.has(s.code)}
+                    onToggle={() => toggle("sources", s.code)}
+                    label={s.code}
+                    count={counts.sources[s.code] || 0}
+                    lead={<SourceLogo code={s.code} className="size-5 rounded text-[8px]" />}
+                  />
+                ))}
+              </FilterPopover>
+
+              <FilterPopover label="Spécialité" icon={Sparkles} count={filters.specialites.size} {...pop("spec")}>
+                {meta.specialites.map((sp) => (
+                  <CheckRow
+                    key={sp}
+                    checked={filters.specialites.has(sp)}
+                    onToggle={() => toggle("specialites", sp)}
+                    label={sp}
+                    count={counts.specialites[sp] || 0}
+                    lead={<span className={cn("size-2 shrink-0 rounded-full", hue.dot)} />}
+                  />
+                ))}
+              </FilterPopover>
+
+              <FilterPopover label="Contrat" icon={Briefcase} count={filters.contrats.size} {...pop("contrat")}>
+                {CONTRATS.map((c) => (
+                  <CheckRow key={c} checked={filters.contrats.has(c)} onToggle={() => toggle("contrats", c)} label={c} count={counts.contrats[c] || 0} />
+                ))}
+              </FilterPopover>
+
+              <FilterPopover label="Expérience" icon={Zap} count={filters.experiences.size} {...pop("exp")}>
+                {EXPERIENCES.map((x) => (
+                  <CheckRow key={x} checked={filters.experiences.has(x)} onToggle={() => toggle("experiences", x)} label={x} count={counts.experiences[x] || 0} />
+                ))}
+              </FilterPopover>
+
+              <FilterPopover label="Niveau" icon={GraduationCap} count={filters.niveaux.size} {...pop("niveau")}>
+                {NIVEAUX.map((n) => (
+                  <CheckRow key={n} checked={filters.niveaux.has(n)} onToggle={() => toggle("niveaux", n)} label={n} count={counts.niveaux[n] || 0} />
+                ))}
+              </FilterPopover>
+
+              <FilterPopover
+                label={periodLabel}
+                icon={CalendarDays}
+                count={filters.period.start || filters.period.end ? 1 : 0}
+                align="right"
+                panelClassName="w-[19.5rem] p-3"
+                {...pop("period")}
+              >
+                <MiniCalendar range={filters.period} onChange={setPeriod} hue={hue} />
+              </FilterPopover>
+
+              <div className="ml-auto flex items-center gap-2.5">
+                <span className="hidden text-xs text-muted-foreground xl:inline">
+                  <strong className="font-heading text-sm font-bold text-brand-navy">{filtered.length}</strong> offre{filtered.length > 1 ? "s" : ""}
+                </span>
+
+                {/* Tri */}
+                <div ref={sortRef} className="relative">
+                  <button
+                    onClick={() => setOpenPop((p) => (p === "sort" ? null : "sort"))}
+                    className={cn(
+                      "inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition-all duration-200",
+                      openPop === "sort"
+                        ? "border-brand-navy bg-brand-navy text-white"
+                        : "border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant hover:border-brand-navy/40 hover:text-brand-navy"
+                    )}
+                  >
+                    <ArrowUpDown className="size-3.5" />
+                    {SORTS.find((s) => s.k === sort).l}
+                    <ChevronDown className={cn("size-3.5 transition-transform duration-200", openPop === "sort" && "rotate-180")} />
+                  </button>
+                  <AnimatePresence>
+                    {openPop === "sort" && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                        transition={{ duration: 0.18 }}
+                        className="absolute right-0 top-full z-50 mt-2 w-48 rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-1.5 shadow-hover"
+                      >
+                        {SORTS.map((s) => (
+                          <button
+                            key={s.k}
+                            onClick={() => { setSort(s.k); setOpenPop(null) }}
+                            className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] font-medium transition-colors hover:bg-surface-container-low"
+                          >
+                            {s.l}
+                            {sort === s.k && <Check className="size-3.5 text-brand-orange" strokeWidth={3} />}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <ViewToggle view={view} onChange={setView} />
+              </div>
+            </div>
+
+            {/* Mobile */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={filters.query}
+                  onChange={(e) => setFilters((p) => ({ ...p, query: e.target.value }))}
+                  placeholder="Rechercher…"
+                  aria-label="Rechercher"
+                  className="h-10 w-full rounded-lg border border-outline-variant/60 bg-surface-container-lowest pl-9 pr-3 text-sm outline-none transition-all placeholder:text-muted-foreground/70 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/10"
+                />
+              </div>
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className={cn(
+                  "inline-flex h-10 items-center gap-2 rounded-lg border px-3.5 text-sm font-bold transition-all",
+                  activeCount > 0
+                    ? "border-brand-navy bg-brand-navy text-white shadow-soft"
+                    : "border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant"
+                )}
+              >
+                <SlidersHorizontal className="size-4" />
+                Filtres
+                {activeCount > 0 && (
+                  <span className="grid size-4.5 place-items-center rounded-full bg-brand-orange text-[10px] font-black text-white">
+                    {activeCount}
+                  </span>
+                )}
+              </button>
               <ViewToggle view={view} onChange={setView} />
             </div>
           </div>
-
-          {/* Mobile */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={filters.query}
-                onChange={(e) => setFilters((p) => ({ ...p, query: e.target.value }))}
-                placeholder="Rechercher…"
-                aria-label="Rechercher"
-                className="h-10 w-full rounded-lg border border-outline-variant/60 bg-surface-container-lowest pl-9 pr-3 text-sm outline-none transition-all placeholder:text-muted-foreground/70 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/10"
-              />
-            </div>
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className={cn(
-                "inline-flex h-10 items-center gap-2 rounded-lg border px-3.5 text-sm font-bold transition-all",
-                activeCount > 0
-                  ? "border-brand-navy bg-brand-navy text-white shadow-soft"
-                  : "border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant"
-              )}
-            >
-              <SlidersHorizontal className="size-4" />
-              Filtres
-              {activeCount > 0 && (
-                <span className="grid size-4.5 place-items-center rounded-full bg-brand-orange text-[10px] font-black text-white">
-                  {activeCount}
-                </span>
-              )}
-            </button>
-            <ViewToggle view={view} onChange={setView} />
-          </div>
         </div>
-      </div>
 
-      {/* ═══════════ Drawer mobile ═══════════ */}
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="max-h-[88vh]">
-          <DrawerHeader className="border-b border-outline-variant/40 px-5 pb-4 pt-2">
-            <DrawerTitle className="font-heading text-base font-bold text-brand-navy">
-              Filtres · {meta.label}
-            </DrawerTitle>
-            <DrawerDescription className="text-xs text-muted-foreground">
-              {filtered.length} offre{filtered.length > 1 ? "s" : ""} correspondante{filtered.length > 1 ? "s" : ""} — mise à jour en direct
-            </DrawerDescription>
-          </DrawerHeader>
+        {/* ═══════════ Drawer mobile ═══════════ */}
+        <FiltersDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          title={`Filtres · ${meta.label}`}
+          resultCount={filtered.length}
+          sort={sort}
+          onSort={setSort}
+          onReset={resetFilters}
+          ctaClassName={hue.solid}
+        >
+          <OfferFilterGroups
+            groups={["sources", "specialites", "contrats", "experiences", "niveaux", "period"]}
+            meta={meta}
+            hue={hue}
+            filters={filters}
+            toggle={toggle}
+            counts={counts}
+            onPeriod={setPeriod}
+          />
+        </FiltersDrawer>
 
-          <div className="flex-1 overflow-y-auto px-5 py-5">
-            <FilterGroups
-              meta={meta}
-              hue={hue}
-              filters={filters}
-              toggle={toggle}
-              counts={counts}
-              onPeriod={setPeriod}
-            />
-
-            <div className="mt-6 border-t border-outline-variant/40 pt-5">
-              <FilterGroup title="Trier par" icon={ArrowUpDown}>
-                <div className="grid grid-cols-2 gap-2 px-1">
-                  {SORTS.map((s) => (
-                    <button
-                      key={s.k}
-                      onClick={() => setSort(s.k)}
-                      className={cn(
-                        "rounded-lg border px-3 py-2.5 text-xs font-bold transition-all",
-                        sort === s.k
-                          ? "border-brand-navy bg-brand-navy text-white shadow-soft"
-                          : "border-outline-variant/60 bg-white text-on-surface-variant hover:border-brand-navy/40 hover:text-brand-navy"
-                      )}
-                    >
-                      {s.l}
-                    </button>
-                  ))}
-                </div>
-              </FilterGroup>
-            </div>
-          </div>
-
-          <DrawerFooter className="border-t border-outline-variant/40 px-5 py-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={resetFilters}
-                className="text-[13px] font-bold text-muted-foreground transition-colors hover:text-brand-navy"
-              >
-                Réinitialiser
-              </button>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                className={cn(
-                  "flex-1 rounded-lg py-3 text-sm font-bold text-white shadow-soft transition-all hover:brightness-110 active:scale-[0.98]",
-                  hue.solid
-                )}
-              >
-                Voir {filtered.length} offre{filtered.length > 1 ? "s" : ""}
-              </button>
-            </div>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-
-      {/* ═══════════ Liste des offres ═══════════ */}
-      <section className="border-b border-outline-variant/30 bg-background py-12 md:py-16">
-        <div className="mx-auto max-w-7xl px-6 md:px-12">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <p className="flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-orange">
-                <span className="h-px w-6 bg-brand-orange" aria-hidden />
-                Collecte du jour
-              </p>
-              <h2 className="mt-3 font-heading text-3xl font-extrabold tracking-tight text-brand-navy sm:text-4xl">
-                Les offres <span className="text-brand-orange">{meta.label}</span> du moment
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                <strong className="font-heading font-bold text-brand-navy">{filtered.length}</strong> offre{filtered.length > 1 ? "s" : ""}
-                {activeCount > 0 ? ` · ${activeCount} filtre${activeCount > 1 ? "s" : ""} actif${activeCount > 1 ? "s" : ""}` : ""} — triées par « {SORTS.find((s) => s.k === sort).l.toLowerCase()} »
-              </p>
-            </motion.div>
-          </div>
-
-          {/* Chips de filtres actifs */}
-          <AnimatePresence>
-            {activeChips.length > 0 && (
+        {/* ═══════════ Liste des offres ═══════════ */}
+        <section className="border-b border-outline-variant/30 bg-background py-12 md:py-16">
+          <div className="mx-auto max-w-7xl px-6 md:px-12">
+            <div className="flex flex-wrap items-end justify-between gap-6">
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                  {activeChips.map((c) => (
+                <p className="flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-orange">
+                  <span className="h-px w-6 bg-brand-orange" aria-hidden />
+                  Collecte du jour
+                </p>
+                <h2 className="mt-3 font-heading text-3xl font-extrabold tracking-tight text-brand-navy sm:text-4xl">
+                  Les offres <span className="text-brand-orange">{meta.label}</span> du moment
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  <strong className="font-heading font-bold text-brand-navy">{filtered.length}</strong> offre{filtered.length > 1 ? "s" : ""}
+                  {activeCount > 0 ? ` · ${activeCount} filtre${activeCount > 1 ? "s" : ""} actif${activeCount > 1 ? "s" : ""}` : ""} — triées par « {SORTS.find((s) => s.k === sort).l.toLowerCase()} »
+                </p>
+              </motion.div>
+            </div>
+
+            {/* Chips de filtres actifs */}
+            <AnimatePresence>
+              {activeChips.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-5 flex flex-wrap items-center gap-2">
+                    {activeChips.map((c) => (
+                      <button
+                        key={c.key}
+                        onClick={c.rm}
+                        className="group inline-flex items-center gap-1.5 rounded-full border border-brand-navy/20 bg-brand-navy/5 px-3 py-1.5 text-xs font-semibold text-brand-navy transition-all hover:border-brand-orange/50 hover:bg-brand-orange/10"
+                      >
+                        {c.label}
+                        <X className="size-3 text-muted-foreground transition-colors group-hover:text-brand-orange" />
+                      </button>
+                    ))}
                     <button
-                      key={c.key}
-                      onClick={c.rm}
-                      className="group inline-flex items-center gap-1.5 rounded-full border border-brand-navy/20 bg-brand-navy/5 px-3 py-1.5 text-xs font-semibold text-brand-navy transition-all hover:border-brand-orange/50 hover:bg-brand-orange/10"
+                      onClick={resetFilters}
+                      className="text-xs font-bold text-brand-orange transition-colors hover:underline"
                     >
-                      {c.label}
-                      <X className="size-3 text-muted-foreground transition-colors group-hover:text-brand-orange" />
+                      Tout effacer
                     </button>
-                  ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Feed */}
+            <AnimatePresence mode="popLayout">
+              {filtered.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-10 rounded-xl border border-dashed border-outline-variant/60 bg-white p-12 text-center"
+                >
+                  <SearchX className="mx-auto size-10 text-muted-foreground/50" />
+                  <h3 className="mt-4 font-heading text-lg font-bold text-brand-navy">Aucune offre trouvée</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Essayez d'élargir vos filtres ou de modifier votre recherche.
+                  </p>
                   <button
                     onClick={resetFilters}
-                    className="text-xs font-bold text-brand-orange transition-colors hover:underline"
+                    className="mt-5 inline-flex items-center gap-2 rounded-lg border border-brand-navy/20 px-5 py-2.5 text-sm font-bold text-brand-navy transition-all hover:border-brand-navy hover:bg-brand-navy hover:text-white"
                   >
-                    Tout effacer
+                    Réinitialiser les filtres
                   </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              ) : view === "list" ? (
+                <motion.ul layout className="mt-8 flex flex-col gap-3">
+                  {filtered.map((o, i) => (
+                    <OfferCard
+                      key={o.id}
+                      offre={o}
+                      index={i}
+                      view="list"
+                      hue={hue}
+                      showFiliereChip={false}
+                      showSpecialite
+                      saved={saved.has(o.id)}
+                      onToggleSave={toggleSave}
+                      getDetailLink={(of) => `/offres/${of.id}`}
+                      entrepriseTotal={Object.values(OFFRES).flat().filter((x) => x.entreprise === o.entreprise).length}
+                    />
+                  ))}
+                </motion.ul>
+              ) : (
+                <motion.div layout className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {filtered.map((o, i) => (
+                    <OfferCard
+                      key={o.id}
+                      offre={o}
+                      index={i}
+                      view="list"
+                      hue={hue}
+                      showFiliereChip={false}
+                      showSpecialite
+                      saved={saved.has(o.id)}
+                      onToggleSave={toggleSave}
+                      getDetailLink={(of) => `/offres/${of.id}`}
+                      entrepriseTotal={Object.values(OFFRES).flat().filter((x) => x.entreprise === o.entreprise).length}
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {/* Feed */}
-          <AnimatePresence mode="popLayout">
-            {filtered.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-10 rounded-xl border border-dashed border-outline-variant/60 bg-white p-12 text-center"
-              >
-                <SearchX className="mx-auto size-10 text-muted-foreground/50" />
-                <h3 className="mt-4 font-heading text-lg font-bold text-brand-navy">Aucune offre trouvée</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Essayez d'élargir vos filtres ou de modifier votre recherche.
-                </p>
-                <button
-                  onClick={resetFilters}
-                  className="mt-5 inline-flex items-center gap-2 rounded-lg border border-brand-navy/20 px-5 py-2.5 text-sm font-bold text-brand-navy transition-all hover:border-brand-navy hover:bg-brand-navy hover:text-white"
-                >
-                  Réinitialiser les filtres
-                </button>
-              </motion.div>
-            ) : view === "list" ? (
-              <motion.ul layout className="mt-8 flex flex-col gap-3">
-                {filtered.map((o, i) => (
-                  <OfferCard
-                    key={o.id}
-                    offre={o}
-                    index={i}
-                    view="list"
-                    hue={hue}
-                    meta={meta}
-                    filiere={filiere}
-                    saved={saved.has(o.id)}
-                    onToggleSave={toggleSave}
-                  />
-                ))}
-              </motion.ul>
-            ) : (
-              <motion.div layout className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {filtered.map((o, i) => (
-                  <OfferCard
-                    key={o.id}
-                    offre={o}
-                    index={i}
-                    view="grid"
-                    hue={hue}
-                    meta={meta}
-                    filiere={filiere}
-                    saved={saved.has(o.id)}
-                    onToggleSave={toggleSave}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <p className="mt-8 flex items-center gap-2 text-xs text-muted-foreground">
-            <span className={cn("size-1.5 rounded-full", hue.dot)} />
-            Mises à jour chaque matin à 6h02 · lien direct vers l'annonce d'origine
-          </p>
-        </div>
-      </section>
+            <p className="mt-8 flex items-center gap-2 text-xs text-muted-foreground">
+              <span className={cn("size-1.5 rounded-full", hue.dot)} />
+              Mises à jour chaque matin à 6h02 · lien direct vers l'annonce d'origine
+            </p>
+          </div>
+        </section>
 
         <BandeauAlerte meta={meta} hue={hue} />
         <AutresFilieres codeActuel={filiere} />

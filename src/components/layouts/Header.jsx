@@ -1,4 +1,4 @@
-// src/components/header.jsx
+
 import { useEffect, useRef, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"

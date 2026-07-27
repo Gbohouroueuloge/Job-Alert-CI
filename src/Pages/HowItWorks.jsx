@@ -7,25 +7,18 @@ import {
 } from "framer-motion"
 import { Link } from "react-router-dom"
 import {
-  ArrowRight, BadgeCheck, Bell, Check, ChevronDown, Clock, Filter, MailCheck,
-  Database, Fingerprint, Radar, RefreshCw, Send, ShieldAlert, SlidersHorizontal,
+  ArrowRight, BadgeCheck, Bell, Check, Clock, Filter, MailCheck, Database,
+  Fingerprint, Radar, RefreshCw, Send, ShieldAlert, SlidersHorizontal, LayoutGrid,
 } from "lucide-react"
 import { FaLinkedin } from "react-icons/fa"
 import { cn } from "@/lib/utils"
 import Seo from "@/components/seo/Seo"
 import { howItWorksSeo } from "@/lib/seo"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import { getImgSource, getUrlSource } from "@/utils/utilsSource"
+import {
+  CountdownEnvoi, CtaLink, StatusChip, ReassuranceList,
+  FaqSection, SectionHeading, StepBlock, VisualFrame,
+} from "@/components/shared"
 
 /* ════════════════════════════════════════════════════════════════════
   DONNÉES
@@ -224,8 +217,6 @@ const PipelineCard = () => {
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{s.desc}</p>
 
-                  {/* ✅ FIX n°1 : la métrique est TOUJOURS rendue (espace réservé),
-                      seule son opacité anime → zéro variation de hauteur */}
                   <motion.p
                     initial={false}
                     animate={{ opacity: st === "done" ? 1 : 0, y: st === "done" ? 0 : 3 }}
@@ -242,9 +233,6 @@ const PipelineCard = () => {
           })}
         </div>
 
-        {/* ✅ FIX n°2 : aperçu email à structure identique dans les deux états.
-            1 ligne de statut (tronquée) + 3 lignes h-[30px] : skeleton en attente,
-            vraies offres une fois livré → hauteur strictement constante */}
         <div className="border-t border-border bg-muted/40 px-5 py-4 sm:px-6">
           {/* Ligne de statut */}
           <div className="flex min-w-0 items-center justify-between gap-3">
@@ -341,20 +329,9 @@ const HeroHowItWorks = () => (
       <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex flex-col items-start gap-5">
           <motion.div variants={fadeUp}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex cursor-default items-center gap-2.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 py-1.5 pl-2.5 pr-4 text-xs font-semibold text-emerald-700">
-                  <span className="relative flex size-2">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-                    <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-                  </span>
-                  Chaîne quotidienne active · dernier run à 6h02
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-62.5 text-center">
-                Scraping à 6h00, dédoublonnage à 6h15, filtrage à 7h00, envoi à 8h00 chaque jour, week-end compris.
-              </TooltipContent>
-            </Tooltip>
+            <StatusChip tooltip="Scraping à 6h00, dédoublonnage à 6h15, filtrage à 7h00, envoi à 8h00 chaque jour, week-end compris.">
+              Chaîne quotidienne active · dernier run à 6h02
+            </StatusChip>
           </motion.div>
 
           <motion.h1
@@ -393,32 +370,18 @@ const HeroHowItWorks = () => (
           </motion.p>
 
           <motion.div variants={fadeUp} className="mt-1 flex flex-col gap-3 sm:flex-row">
-            <Link
-              to="/inscription"
-              className="group inline-flex items-center justify-center gap-2.5 rounded-lg bg-brand-orange px-7 py-3.5 text-base font-bold text-white shadow-[0_12px_28px_-6px_rgba(245,166,35,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_16px_36px_-6px_rgba(245,166,35,0.55)] active:scale-[0.98]"
-            >
-              <Bell className="size-5 transition-transform duration-300 group-hover:rotate-12" />
-              Créer mon alerte gratuite
-            </Link>
-            <a
-              href="#chaine"
-              className="group inline-flex items-center justify-center gap-2 rounded-lg border border-brand-navy/15 bg-white/70 px-6 py-3.5 text-base font-semibold text-brand-navy backdrop-blur-sm transition-all duration-300 hover:border-brand-navy/35 hover:bg-white"
-            >
-              Voir les 4 étapes
-              <ChevronDown className="size-4 transition-transform duration-300 group-hover:translate-y-0.5" />
-            </a>
+            <motion.div variants={fadeUp} className="mt-1 flex flex-col gap-3 sm:flex-row">
+              <CtaLink to="/inscription" icon={Bell} animateIcon>Créer mon alerte gratuite</CtaLink>
+              <CtaLink to="/comment-ca-marche" variant="secondary" icon={LayoutGrid}>
+                Toutes les filieres
+              </CtaLink>
+            </motion.div>
           </motion.div>
 
-          <motion.ul variants={fadeUp} className="flex flex-wrap gap-x-5 gap-y-2">
-            {REASSURANCES_HERO.map((r) => (
-              <li key={r} className="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
-                <span className="flex size-4 items-center justify-center rounded-full bg-emerald-500/10">
-                  <Check className="size-2.5 text-emerald-600" strokeWidth={3} />
-                </span>
-                {r}
-              </li>
-            ))}
-          </motion.ul>
+          <motion.div variants={fadeUp}>
+            <ReassuranceList items={REASSURANCES_HERO} />
+          </motion.div>
+          <CountdownEnvoi variant="horloge" className="mx-auto md:mt-4" />
         </motion.div>
 
         <PipelineCard />
@@ -507,73 +470,9 @@ const SerpentineTrace = ({ progress }) => {
   )
 }
 
-/* Cadre commun des visuels : horaire fantôme + décalage navy */
-const CadreVisuel = ({ time, children }) => (
-  <div className="relative">
-    <span
-      className="pointer-events-none absolute -top-9 right-0 select-none font-heading text-7xl font-black leading-none text-brand-navy/6 sm:text-8xl"
-      aria-hidden
-    >
-      {time}
-    </span>
-    <div className="absolute inset-0 translate-x-3 translate-y-4 rotate-1 rounded-xl bg-brand-navy/6" aria-hidden />
-    <div className="relative rounded-xl border border-outline-variant/40 bg-white p-5 shadow-[0_20px_40px_-16px_rgba(15,45,77,0.18)]">
-      {children}
-    </div>
-  </div>
-)
-
-/* Bloc texte d'une étape (numéro fantôme + horaire + points clés) */
-const BlocEtape = ({ num, time, icon: Icon, title, intro, points, reverse, children }) => (
-  <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-    <motion.div
-      initial={{ opacity: 0, x: reverse ? 28 : -28 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className={cn(reverse && "lg:order-2")}
-    >
-      <div className="flex items-center gap-3">
-        <span className="font-heading text-5xl font-black leading-none text-brand-navy/10">{num}</span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange/10 px-3 py-1 font-heading text-sm font-black tracking-tight text-brand-orange">
-          <Clock className="size-3.5" />
-          {time}
-        </span>
-      </div>
-      <h3 className="mt-4 flex items-center gap-3 font-heading text-2xl font-extrabold tracking-tight text-brand-navy sm:text-[1.7rem]">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-navy text-brand-orange">
-          <Icon className="size-5" strokeWidth={2} />
-        </span>
-        {title}
-      </h3>
-      <p className="mt-4 leading-relaxed text-on-surface-variant">{intro}</p>
-      <ul className="mt-5 space-y-2.5">
-        {points.map((p) => (
-          <li key={p} className="flex items-start gap-2.5 text-sm text-on-surface-variant">
-            <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-brand-orange/10">
-              <Check className="size-2.5 text-brand-orange" strokeWidth={3.5} />
-            </span>
-            {p}
-          </li>
-        ))}
-      </ul>
-    </motion.div>
-
-    <motion.div
-      initial={{ opacity: 0, x: reverse ? -28 : 28 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-      className={cn(reverse && "lg:order-1")}
-    >
-      {children}
-    </motion.div>
-  </div>
-)
-
 /* ── Visuel 1 : statut des scrapers ─────────────────────────────────── */
 const VisualCollecte = () => (
-  <CadreVisuel time="06h00">
+  <VisualFrame time="06h00">
     <div className="flex items-center justify-between gap-3">
       <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Scrapers · statut du jour</p>
       <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700">4/4 actifs</span>
@@ -631,12 +530,12 @@ const VisualCollecte = () => (
         Voir nos sources
       </Link>
     </div>
-  </CadreVisuel>
+  </VisualFrame>
 )
 
 /* ── Visuel 2 : le tampon "doublon" ─────────────────────────────────── */
 const VisualDedup = () => (
-  <CadreVisuel time="06h15">
+  <VisualFrame time="06h15">
     <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">6h15 — même annonce, deux sources</p>
 
     <div className="mt-3.5 grid gap-3 sm:grid-cols-2">
@@ -684,12 +583,12 @@ const VisualDedup = () => (
       <Fingerprint className="size-3.5 shrink-0 text-brand-orange" />
       Empreinte calculée depuis le lien de l'annonce — contrainte UNIQUE en base.
     </p>
-  </CadreVisuel>
+  </VisualFrame>
 )
 
 /* ── Visuel 3 : le matching par filière ─────────────────────────────── */
 const VisualFiltrage = () => (
-  <CadreVisuel time="07h00">
+  <VisualFrame time="07h00">
     <div className="flex items-center gap-3">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-violet-500 text-[11px] font-black text-white">AD</span>
       <div className="min-w-0">
@@ -753,12 +652,12 @@ const VisualFiltrage = () => (
         Voir tous les filieres
       </Link>
     </div>
-  </CadreVisuel>
+  </VisualFrame>
 )
 
 /* ── Visuel 4 : le récapitulatif de 8h00 ────────────────────────────── */
 const VisualEnvoi = () => (
-  <CadreVisuel time="08h00">
+  <VisualFrame time="08h00">
     <span className="absolute -right-3 -top-3 z-10 inline-flex rotate-2 items-center gap-1.5 rounded-full bg-brand-navy px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">
       <RefreshCw className="size-3 text-brand-orange" />
       3 tentatives si échec
@@ -807,7 +706,7 @@ const VisualEnvoi = () => (
       <BadgeCheck className="size-3.5 shrink-0 text-emerald-500" />
       Chaque envoi est journalisé : statut, horodatage, nombre d'offres.
     </p>
-  </CadreVisuel>
+  </VisualFrame>
 )
 
 /* ── Section assemblée ──────────────────────────────────────────────── */
@@ -824,32 +723,18 @@ const EtapesDetail = () => {
   return (
     <section id="chaine" className="scroll-mt-24 overflow-hidden bg-surface-container-lowest py-20 md:py-24">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-2xl"
-        >
-          <p className="flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-orange">
-            <span className="h-px w-6 bg-brand-orange" aria-hidden />
-            Sous le capot
-          </p>
-          <h2 className="mt-3 font-heading text-3xl font-extrabold tracking-tight text-brand-navy sm:text-4xl">
-            Deux heures de mécanique, <span className="text-brand-orange">zéro intervention</span>.
-          </h2>
-          <p className="mt-3 text-base leading-relaxed text-on-surface-variant sm:text-lg">
-            La chaîne s'exécute seule chaque matin, sans action humaine. Voici exactement ce que fait
-            chaque maillon et ce qu'il ne fait pas.
-          </p>
-        </motion.div>
+        <SectionHeading
+          eyebrow="Sous le capot"
+          title={<>Deux heures de mécanique, <span className="text-brand-orange">zéro intervention</span>.</>}
+          sub="La chaîne s'exécute seule chaque matin, sans action humaine. Voici exactement ce que fait chaque maillon et ce qu'il ne fait pas."
+        />
 
         {/* Les étapes, avec la serpentine en fond */}
         <div ref={stepsRef} className="relative mt-16">
           <SerpentineTrace progress={traceProgress} />
 
           <div className="relative z-10 space-y-20 lg:space-y-24">
-            <BlocEtape
+            <StepBlock
               num="01" time="06h00" icon={Radar} title="Collecte & centralisation"
               intro="À 6h00 tapantes, quatre scrapers se lancent en parallèle. Chacun parcourt la page « dernières offres » de sa source, extrait titre, entreprise, lien et date de publication, puis nettoie le tout : accents, casse, espaces superflus."
               points={[
@@ -860,9 +745,9 @@ const EtapesDetail = () => {
               ]}
             >
               <VisualCollecte />
-            </BlocEtape>
+            </StepBlock>
 
-            <BlocEtape
+            <StepBlock
               num="02" time="06h15" icon={Fingerprint} title="Dédoublonnage" reverse
               intro="Avant d'entrer en base, chaque offre reçoit une empreinte unique calculée depuis son lien d'annonce ou à défaut du couple titre + entreprise. Si l'empreinte existe déjà, l'offre est ignorée. Définitivement."
               points={[
@@ -872,9 +757,9 @@ const EtapesDetail = () => {
               ]}
             >
               <VisualDedup />
-            </BlocEtape>
+            </StepBlock>
 
-            <BlocEtape
+            <StepBlock
               num="03" time="07h00" icon={SlidersHorizontal} title="Filtrage par filière"
               intro="Une fois le scraping terminé, le système croise les nouvelles offres du jour avec les filières de chaque abonné actif. Chacun reçoit une liste différente, la sienne, construite à partir de ses 1 à 3 filières choisies à l'inscription."
               points={[
@@ -884,9 +769,9 @@ const EtapesDetail = () => {
               ]}
             >
               <VisualFiltrage />
-            </BlocEtape>
+            </StepBlock>
 
-            <BlocEtape
+            <StepBlock
               num="04" time="08h00" icon={Send} title="Envoi du récapitulatif" reverse
               intro="À 8h00 précises, chaque abonné concerné reçoit son récapitulatif personnalisé : les offres filtrées, avec titre, entreprise, lien direct vers l'annonce d'origine et date de publication. Prêt à postuler avant tout le monde."
               points={[
@@ -896,7 +781,7 @@ const EtapesDetail = () => {
               ]}
             >
               <VisualEnvoi />
-            </BlocEtape>
+            </StepBlock>
           </div>
         </div>
       </div>
@@ -941,82 +826,6 @@ const SourcesBand = () => (
 )
 
 /* ════════════════════════════════════════════════════════════════════
-  FAQ FONCTIONNEMENT
-════════════════════════════════════════════════════════════════════ */
-
-const FaqFonctionnement = () => (
-  <section className="bg-background py-20 md:py-24">
-    <div className="mx-auto grid max-w-7xl gap-12 px-6 md:px-12 lg:grid-cols-[0.9fr_1.1fr]">
-      <div className="self-start lg:sticky lg:top-28">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-md"
-        >
-          <p className="flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-orange">
-            <span className="h-px w-6 bg-brand-orange" aria-hidden />
-            Questions de mécanique
-          </p>
-          <h2 className="mt-3 font-heading text-3xl font-extrabold tracking-tight text-brand-navy sm:text-4xl">
-            Ce qu'on nous demande <span className="text-brand-orange">le plus souvent</span>.
-          </h2>
-          <p className="mt-3 text-base leading-relaxed text-on-surface-variant sm:text-lg">
-            Le fonctionnement de la chaîne, expliqué sans jargon.
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.55, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8 max-w-md rounded-xl border border-outline-variant/50 bg-white p-6 shadow-soft"
-        >
-          <span className="flex size-11 items-center justify-center rounded-lg bg-brand-orange/10 text-brand-orange">
-            <Radar className="size-5" strokeWidth={2} />
-          </span>
-          <h3 className="mt-4 font-heading text-base font-bold text-brand-navy">
-            Curieux de voir d'où viennent les offres ?
-          </h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-on-surface-variant">
-            La page Sources détaille les 4 plateformes scannées et notre méthode de collecte, source par source.
-          </p>
-          <Link
-            to="/sources"
-            className="group mt-4 inline-flex items-center gap-2 rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-brand-navy/90"
-          >
-            Explorer les sources
-            <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-        </motion.div>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <Accordion type="single" collapsible defaultValue="q1" className="w-full border-none">
-          {QUESTIONS.map((q) => (
-            <AccordionItem key={q.id} value={q.id} className="border-outline-variant/40 group">
-              <AccordionTrigger className="py-5 hover:no-underline group-data-open:text-brand-orange text-left font-heading text-[15px] font-bold text-brand-navy transition-colors duration-200 hover:text-brand-orange">
-                {q.question}
-              </AccordionTrigger>
-              <AccordionContent className="pb-5 text-sm leading-relaxed text-on-surface-variant">
-                {q.reponse}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </motion.div>
-    </div>
-  </section>
-)
-
-/* ════════════════════════════════════════════════════════════════════
   PAGE
 ════════════════════════════════════════════════════════════════════ */
 
@@ -1027,7 +836,20 @@ const HowItWorks = () => (
       <HeroHowItWorks />
       <EtapesDetail />
       <SourcesBand />
-      <FaqFonctionnement />
+      <FaqSection
+        background="bg-background"
+        eyebrow="Questions de mécanique"
+        title={<>Ce qu'on nous demande <span className="text-brand-orange">le plus souvent</span>.</>}
+        sub="Le fonctionnement de la chaîne, expliqué sans jargon."
+        questions={QUESTIONS}
+        aside={{
+          icon: Radar,
+          title: "Curieux de voir d'où viennent les offres ?",
+          text: "La page Sources détaille les 4 plateformes scannées et notre méthode de collecte, source par source.",
+          to: "/sources",
+          cta: "Explorer les sources",
+        }}
+      />
     </main>
   </>
 )

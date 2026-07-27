@@ -17,7 +17,7 @@ class Utilisateur(models.Model):
 class Offres(models.Model):
     titre = models.CharField(max_length=200)
     entreprise = models.CharField(max_length=100)
-    lien = models.CharField()
+    lien = models.CharField(max_length=500)
     date_publication = models.DateField()
     source = models.CharField(max_length=100)
     filier_tag = models.CharField(max_length=50)

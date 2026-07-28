@@ -436,12 +436,6 @@ const Header = () => {
             {/* Actions */}
             <div className="flex items-center gap-2">
               <Link
-                to="/admin/connexion"
-                className="hidden rounded-md px-3 py-2 text-sm font-semibold text-brand-navy transition-colors duration-300 hover:bg-brand-navy hover:text-white lg:inline-flex"
-              >
-                Connexion
-              </Link>
-              <Link
                 to="/inscription"
                 className="group inline-flex items-center gap-2 whitespace-nowrap rounded-md bg-brand-orange px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:brightness-110 hover:shadow-md active:scale-[0.98]"
               >
@@ -704,13 +698,6 @@ const Header = () => {
 
                 {/* Actions */}
                 <div className="mt-4 flex flex-col md:flex-row gap-2 border-t border-outline-variant/30 pt-4">
-                  <Link
-                    to="/admin/connexion"
-                    className="inline-flex items-center justify-center rounded-md border border-outline-variant/60 px-4 py-2.5 w-full text-sm font-semibold text-brand-navy transition-colors hover:bg-brand-navy hover:text-white duration-400"
-                  >
-                    Connexion
-                  </Link>
-
                   <Link
                     to="/inscription"
                     className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-orange px-4 py-2.5 text-sm font-semibold  w-full text-white transition-all hover:brightness-110"

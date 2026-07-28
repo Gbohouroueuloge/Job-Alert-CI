@@ -13,6 +13,11 @@ import DetailsOffre from "./Pages/Offres/DetailsOffre";
 import BootLoader from "./components/BootLoader";
 import Conseils from "./Pages/Conseils";
 import DetailsConseil from "./Pages/Conseils/DetailsConseil";
+import Sources from "./Pages/Sources";
+import Registered from "./Pages/Registered";
+import Faq from "./Pages/Support/FAQ";
+import MentionsLegales from "./Pages/Support/MentionsLegales";
+import Contact from "./Pages/Support/Contact";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -45,6 +50,12 @@ const App = () => {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="comment-ca-marche" element={<HowItWorks />} />
+            <Route path="sources" element={<Sources />} />
+            <Route path="inscription" element={<Registered />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<Faq />} />
+            <Route path="/mentions-legales" element={<MentionsLegales />} />
+
             <Route path="offres" element={<Offres />} />
             <Route path="filieres" element={<Filieres />} />
             <Route path="filieres/:filiere" element={<DetailsFiliere />} />

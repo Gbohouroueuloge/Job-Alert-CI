@@ -44,7 +44,6 @@ const SUPPORT_FOOTER = [
   { label: "FAQ", to: "/faq" },
   { label: "Contact", to: "/contact" },
   { label: "Mentions légales", to: "/mentions-legales" },
-  { label: "Confidentialité", to: "/mentions-legales" },
 ]
 
 const socialsLinks = [

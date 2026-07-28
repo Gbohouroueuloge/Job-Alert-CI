@@ -1,10 +1,9 @@
-
 import { useEffect, useRef, useState } from "react"
 import { animate, useInView } from "framer-motion"
 
 const CountUp = ({ to, prefix = "", suffix = "", duration = 1.3, format = true, className }) => {
   const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: "-60px" })
+  const inView = useInView(ref, { once: true, amount: "some" })
   const [value, setValue] = useState(0)
 
   useEffect(() => {

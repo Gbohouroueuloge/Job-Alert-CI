@@ -628,3 +628,192 @@ export const conseilSeo = ({ article, cat, contenu, slug } = {}) => {
     },
   }
 }
+
+export const mentionsLegalesSeo = () => ({
+  title: "Mentions legales JobAlert CI | Donnees, cookies et contact",
+  description:
+    "Consultez les mentions legales de JobAlert CI : editeur du site, donnees personnelles, cookies, propriete intellectuelle, responsabilite et contact.",
+  path: "/mentions-legales",
+  image: "/screen.png",
+  imageAlt: "Mentions legales de JobAlert CI",
+  keywords:
+    "mentions legales JobAlert CI, donnees personnelles, cookies, propriete intellectuelle, responsabilite, contact",
+  type: "website",
+  locale: "fr_CI",
+  structuredData: {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${siteUrl}/mentions-legales#webpage`,
+        url: `${siteUrl}/mentions-legales`,
+        name: "Mentions legales JobAlert CI | Donnees, cookies et contact",
+        description:
+          "Consultez les mentions legales de JobAlert CI : editeur du site, donnees personnelles, cookies, propriete intellectuelle, responsabilite et contact.",
+        inLanguage: "fr-CI",
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${siteUrl}/#service`,
+        },
+        primaryImageOfPage: absoluteUrl("/screen.png"),
+      },
+      makeBreadcrumb([
+        { name: "Accueil", url: `${siteUrl}/` },
+        { name: "Mentions legales", url: `${siteUrl}/mentions-legales` },
+      ]),
+    ],
+  },
+})
+
+export const faqSeo = () => ({
+  title: "FAQ JobAlert CI | Gratuit, sources et alerte 8h00",
+  description:
+    "Trouvez les reponses aux questions frequentes sur JobAlert CI : gratuit, collecte, sources, alerte emploi a 8h00, confidentialite et inscription.",
+  path: "/faq",
+  image: "/screen.png",
+  imageAlt: "Foire aux questions JobAlert CI",
+  keywords:
+    "FAQ JobAlert CI, questions frequentes, alerte emploi 8h00, sources, confidentialite, inscription",
+  type: "website",
+  locale: "fr_CI",
+  structuredData: {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        "@id": `${siteUrl}/faq#faqpage`,
+        url: `${siteUrl}/faq`,
+        name: "FAQ JobAlert CI | Gratuit, sources et alerte 8h00",
+        description:
+          "Trouvez les reponses aux questions frequentes sur JobAlert CI : gratuit, collecte, sources, alerte emploi a 8h00, confidentialite et inscription.",
+        inLanguage: "fr-CI",
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${siteUrl}/#service`,
+        },
+      },
+      makeBreadcrumb([
+        { name: "Accueil", url: `${siteUrl}/` },
+        { name: "FAQ", url: `${siteUrl}/faq` },
+      ]),
+    ],
+  },
+})
+
+export const contactSeo = () => ({
+  title: "Contact JobAlert CI | Support, source et partenariat",
+  description:
+    "Contactez l'equipe JobAlert CI pour une question sur le service, votre alerte emploi, une source a ajouter ou un partenariat.",
+  path: "/contact",
+  image: "/screen.png",
+  imageAlt: "Page de contact JobAlert CI",
+  keywords:
+    "contact JobAlert CI, support, partenariat, source, question alerte, email",
+  type: "website",
+  locale: "fr_CI",
+  structuredData: {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ContactPage",
+        "@id": `${siteUrl}/contact#webpage`,
+        url: `${siteUrl}/contact`,
+        name: "Contact JobAlert CI | Support, source et partenariat",
+        description:
+          "Contactez l'equipe JobAlert CI pour une question sur le service, votre alerte emploi, une source a ajouter ou un partenariat.",
+        inLanguage: "fr-CI",
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${siteUrl}/#service`,
+        },
+        primaryImageOfPage: absoluteUrl("/screen.png"),
+      },
+      makeBreadcrumb([
+        { name: "Accueil", url: `${siteUrl}/` },
+        { name: "Contact", url: `${siteUrl}/contact` },
+      ]),
+    ],
+  },
+})
+
+export const sourcesSeo = ({ total = 4 } = {}) => ({
+  title: "Sources JobAlert CI | 4 sources emploi surveillees",
+  description:
+    `Découvrez les ${Number(total).toLocaleString("fr-FR")} sources surveillées par JobAlert CI : EmploiDakar CI, GoAfrica, Novojob et LinkedIn, avec collecte, dédoublonnage et fiabilite du flux.`,
+  path: "/sources",
+  image: "/screen.png",
+  imageAlt: "Sources surveillées par JobAlert CI",
+  keywords:
+    "sources JobAlert CI, EmploiDakar CI, GoAfrica, Novojob, LinkedIn, collecte offres emploi",
+  type: "website",
+  locale: "fr_CI",
+  structuredData: {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${siteUrl}/sources#webpage`,
+        url: `${siteUrl}/sources`,
+        name: "Sources JobAlert CI | 4 sources emploi surveillees",
+        description:
+          `Découvrez les ${Number(total).toLocaleString("fr-FR")} sources surveillées par JobAlert CI : EmploiDakar CI, GoAfrica, Novojob et LinkedIn, avec collecte, dédoublonnage et fiabilite du flux.`,
+        inLanguage: "fr-CI",
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${siteUrl}/#service`,
+        },
+        primaryImageOfPage: absoluteUrl("/screen.png"),
+      },
+      makeBreadcrumb([
+        { name: "Accueil", url: `${siteUrl}/` },
+        { name: "Sources", url: `${siteUrl}/sources` },
+      ]),
+    ],
+  },
+})
+
+export const registeredSeo = () => ({
+  title: "Inscription JobAlert CI | Alerte emploi gratuite a 8h00",
+  description:
+    "Créez votre alerte emploi JobAlert CI en quelques minutes : choisissez 1 a 3 filieres, recevez vos offres a 8h00 et desinscrivez-vous en un clic.",
+  path: "/inscription",
+  image: "/screen.png",
+  imageAlt: "Inscription JobAlert CI",
+  keywords:
+    "inscription JobAlert CI, alerte emploi 8h00, filieres emploi, offres d'emploi Cote d'Ivoire, gratuit",
+  type: "website",
+  locale: "fr_CI",
+  structuredData: {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${siteUrl}/inscription#webpage`,
+        url: `${siteUrl}/inscription`,
+        name: "Inscription JobAlert CI | Alerte emploi gratuite a 8h00",
+        description:
+          "Créez votre alerte emploi JobAlert CI en quelques minutes : choisissez 1 a 3 filieres, recevez vos offres a 8h00 et desinscrivez-vous en un clic.",
+        inLanguage: "fr-CI",
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${siteUrl}/#service`,
+        },
+        primaryImageOfPage: absoluteUrl("/screen.png"),
+      },
+      makeBreadcrumb([
+        { name: "Accueil", url: `${siteUrl}/` },
+        { name: "Inscription", url: `${siteUrl}/inscription` },
+      ]),
+    ],
+  },
+})

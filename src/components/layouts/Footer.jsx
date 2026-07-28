@@ -25,6 +25,7 @@ const NAV_FOOTER = [
   { label: "Accueil", to: "/" },
   { label: "Comment ça marche", to: "/comment-ca-marche" },
   { label: "Offres d'emploi", to: "/offres" },
+  { label: "Tous les filieres", to: "/filieres" },
   { label: "Conseils carrière", to: "/conseils" },
   { label: "Sources partenaires", to: "/sources" },
   { label: "Actualités", to: "/actualites" },

@@ -3,11 +3,10 @@ import { useEffect, useRef, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import {
-  ArrowRight, ArrowUpRight, Award, BadgeCheck, BarChart3, Bell, BookOpen,
-  Building2, Calculator, ChevronDown, Clock, Code2, Compass, FileText,
-  GraduationCap, HandCoins, Handshake, HardHat, HeartHandshake, LayoutGrid, Megaphone,
-  Menu, MessagesSquare, Radar, Rocket, Scale, ShieldCheck, Sparkles,
-  Sprout, Stethoscope, Target, Truck, Users, UtensilsCrossed, X, Zap,
+  ArrowRight, ArrowUpRight, BadgeCheck, Bell, BookOpen, Building2, Calculator,
+  ChevronDown, Clock, Code2, GraduationCap, Handshake, HardHat, LayoutGrid,
+  Megaphone, Menu, Radar, ShieldCheck, Sparkles, Sprout, Stethoscope, Truck,
+  Users, UtensilsCrossed, X, Zap,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Logo from "@/components/ui/logo"
@@ -17,6 +16,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { HUES } from "@/lib/hues"
+import { ARTICLES, catOf, fmtVus } from "@/data/conseils"
 
 /* ------------------------------------------------------------------ */
 /*  Données                                                            */
@@ -90,66 +91,10 @@ const FILIERES = [
   },
 ]
 
-const CONSEILS = [
-  {
-    label: "CV & Lettre de motivation", to: "/conseils/cv-lettre", icon: FileText, count: 14, unit: "guides",
-    tile: "bg-blue-500/10 text-blue-600", tileHover: "group-hover:bg-blue-600 group-hover:text-white",
-    itemHover: "hover:bg-blue-50 hover:border-blue-200"
-  },
-  {
-    label: "Entretien d'embauche", to: "/conseils/entretien", icon: MessagesSquare, count: 12, unit: "guides",
-    tile: "bg-rose-500/10 text-rose-600", tileHover: "group-hover:bg-rose-600 group-hover:text-white",
-    itemHover: "hover:bg-rose-50 hover:border-rose-200"
-  },
-  {
-    label: "Carrière & Évolution", to: "/conseils/carriere", icon: Compass, count: 11, unit: "guides",
-    tile: "bg-violet-500/10 text-violet-600", tileHover: "group-hover:bg-violet-600 group-hover:text-white",
-    itemHover: "hover:bg-violet-50 hover:border-violet-200"
-  },
-  {
-    label: "Secteurs porteurs", to: "/conseils/secteurs-porteurs", icon: BarChart3, count: 9, unit: "guides",
-    tile: "bg-emerald-500/10 text-emerald-600", tileHover: "group-hover:bg-emerald-600 group-hover:text-white",
-    itemHover: "hover:bg-emerald-50 hover:border-emerald-200"
-  },
-  {
-    label: "Salaire & Négociation", to: "/conseils/salaire-negociation", icon: HandCoins, count: 8, unit: "guides",
-    tile: "bg-amber-500/10 text-amber-600", tileHover: "group-hover:bg-amber-600 group-hover:text-white",
-    itemHover: "hover:bg-amber-50 hover:border-amber-200"
-  },
-  {
-    label: "Formation & Compétences", to: "/conseils/formation-competences", icon: Award, count: 10, unit: "guides",
-    tile: "bg-cyan-500/10 text-cyan-600", tileHover: "group-hover:bg-cyan-600 group-hover:text-white",
-    itemHover: "hover:bg-cyan-50 hover:border-cyan-200"
-  },
-  {
-    label: "Personal branding & Réseaux", to: "/conseils/personal-branding", icon: Sparkles, count: 7, unit: "guides",
-    tile: "bg-fuchsia-500/10 text-fuchsia-600", tileHover: "group-hover:bg-fuchsia-600 group-hover:text-white",
-    itemHover: "hover:bg-fuchsia-50 hover:border-fuchsia-200"
-  },
-  {
-    label: "Droit du travail", to: "/conseils/droit-du-travail", icon: Scale, count: 6, unit: "guides",
-    tile: "bg-indigo-500/10 text-indigo-600", tileHover: "group-hover:bg-indigo-600 group-hover:text-white",
-    itemHover: "hover:bg-indigo-50 hover:border-indigo-200"
-  },
-  {
-    label: "Freelance & Entrepreneuriat", to: "/conseils/freelance-entrepreneuriat", icon: Rocket, count: 5, unit: "guides", fresh: true,
-    tile: "bg-orange-500/10 text-orange-600", tileHover: "group-hover:bg-orange-600 group-hover:text-white",
-    itemHover: "hover:bg-orange-50 hover:border-orange-200"
-  },
-  {
-    label: "Méthodes de recherche", to: "/conseils/methodes-recherche", icon: Target, count: 8, unit: "guides",
-    tile: "bg-teal-500/10 text-teal-600", tileHover: "group-hover:bg-teal-600 group-hover:text-white",
-    itemHover: "hover:bg-teal-50 hover:border-teal-200"
-  },
-  {
-    label: "Bien-être & Équilibre", to: "/conseils/bien-etre", icon: HeartHandshake, count: 6, unit: "guides",
-    tile: "bg-lime-500/10 text-lime-600", tileHover: "group-hover:bg-lime-600 group-hover:text-white",
-    itemHover: "hover:bg-lime-50 hover:border-lime-200"
-  },
-]
+/* Top 8 des conseils les plus lus — alimente le mega-menu */
+const TOP_CONSEILS = [...ARTICLES].sort((a, b) => b.vus - a.vus).slice(0, 9)
 
 const TOTAL_OFFRES = FILIERES.reduce((sum, f) => sum + f.count, 0)
-const TOTAL_GUIDES = CONSEILS.reduce((sum, c) => sum + c.count, 0)
 
 const NAV_LINKS = [
   { label: "Accueil", to: "/" },
@@ -276,6 +221,44 @@ const AllTile = ({ to, icon: Icon, label, count, unit }) => (
   </motion.div>
 )
 
+/* Tuile conseil — article du top 8, avec badge de rang */
+const ConseilTile = ({ a, rank }) => {
+  const cat = catOf(a.cat)
+  const hue = HUES[cat.hue]
+  const Icon = cat.icon
+  return (
+    <motion.div variants={itemVariants}>
+      <Link
+        to={`/conseils/${a.slug}`}
+        className="group flex items-start gap-3 rounded-lg border border-transparent p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-outline-variant/50 hover:bg-surface-container-low/60 hover:shadow-soft"
+      >
+        <span className={cn(
+          "relative flex size-10 shrink-0 items-center justify-center rounded-md transition-colors duration-200",
+          hue.tile,
+          hue.tileHover
+        )}>
+          <Icon className="size-5" strokeWidth={2} />
+          <span className="absolute -left-1.5 -top-1.5 grid size-4.5 place-items-center rounded-full bg-brand-navy font-heading text-[9px] font-black text-white ring-2 ring-white">
+            {rank}
+          </span>
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate-2 text-[13px] font-semibold leading-tight text-on-surface transition-colors duration-200 group-hover:text-brand-orange">
+            {a.titre}
+          </span>
+          <span className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            <span className={cn("size-1.5 shrink-0 rounded-full", hue.dot)} />
+            <span className="truncate">{cat.label}</span>
+            <span aria-hidden>·</span>
+            <Clock className="size-3 shrink-0" />
+            {a.lecture} min
+          </span>
+        </span>
+      </Link>
+    </motion.div>
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /*  Header                                                             */
 /* ------------------------------------------------------------------ */
@@ -285,6 +268,7 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const closeTimer = useRef(null)
+  const headerRef = useRef(null)
   const location = useLocation()
 
   const openMega = (name) => {
@@ -309,6 +293,21 @@ const Header = () => {
     setOpenMenu(null)
     setMobileOpen(false)
   }, [location.pathname])
+
+  /* Clic hors du header → ferme le menu mobile (le header reste exclu,
+   seul le bouton X le referme de l'intérieur) */
+  useEffect(() => {
+    if (!mobileOpen) return
+    const handler = (e) => {
+      if (headerRef.current && !headerRef.current.contains(e.target)) setMobileOpen(false)
+    }
+    document.addEventListener("mousedown", handler)
+    document.addEventListener("touchstart", handler)
+    return () => {
+      document.removeEventListener("mousedown", handler)
+      document.removeEventListener("touchstart", handler)
+    }
+  }, [mobileOpen])
 
   /* Touche Échap */
   useEffect(() => {
@@ -356,7 +355,7 @@ const Header = () => {
   )
 
   return (
-    <header className="sticky top-0 z-50 w-full">
+    <header ref={headerRef} className="sticky top-0 z-50 w-full">
       {/* ── Bandeau d'état du scraping ─────────────────────────────── */}
       <AnimatePresence initial={false}>
         {!scrolled && (
@@ -543,61 +542,59 @@ const Header = () => {
               </MegaPanel>
             )}
 
-            {/* -------- MEGA-MENU CONSEILS -------- */}
+            {/* -------- MEGA-MENU CONSEILS — top 8 des plus lus -------- */}
             {openMenu === "conseils" && (
               <MegaPanel key="mega-conseils" onEnter={() => openMega("conseils")} onLeave={scheduleClose}>
                 <div className="grid gap-8 px-5 py-7 md:px-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:px-12">
                   <div>
                     <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
                       <p className="font-heading text-sm font-bold uppercase tracking-wider text-brand-navy">
-                        Guides & conseils carrière
+                        Les conseils les plus lus
                       </p>
                       <p className="text-xs font-medium text-muted-foreground">
-                        {TOTAL_GUIDES} guides · nouveaux contenus chaque semaine
+                        Top 9 · classés par nombre de lectures
                       </p>
                     </div>
-
                     <motion.div
                       variants={listVariants}
                       initial="hidden"
                       animate="visible"
-                      className="grid grid-cols-2 gap-1.5 md:grid-cols-3 xl:grid-cols-4"
+                      className="grid grid-cols-2 gap-1.5 md:grid-cols-2"
                     >
-                      {CONSEILS.map((c) => (
-                        <MenuTile key={c.to} item={c} />
+                      {TOP_CONSEILS.map((a, i) => (
+                        <ConseilTile key={a.slug} a={a} rank={i + 1} />
                       ))}
-                      <AllTile to="/conseils" icon={BookOpen} label="Tous les conseils" count={TOTAL_GUIDES} unit="guides" />
+                      <AllTile to="/conseils" icon={BookOpen} label="Tous les conseils" count={ARTICLES.length} unit="articles" />
                     </motion.div>
                   </div>
-
-                  {/* Carte "conseil à la une" */}
+                  {/* Carte "conseil n°1" — alimentée par le vrai classement */}
                   <aside className="relative hidden flex-col overflow-hidden rounded-xl bg-brand-navy p-6 text-white lg:flex">
                     <div className="pointer-events-none absolute inset-0 bg-pattern opacity-30" aria-hidden />
                     <div className="relative flex flex-1 flex-col">
                       <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/90">
                         <Sparkles className="size-3 text-brand-orange" />
-                        Conseil à la une
+                        Conseil n°1 cette semaine
                       </span>
                       <p className="mt-5 font-heading text-[21px] font-bold leading-snug">
-                        CV : les 5 erreurs qui écartent votre candidature en moins de 30 secondes
+                        {TOP_CONSEILS[0].titre}
                       </p>
-                      <p className="mt-3 text-sm leading-relaxed text-white/70">
-                        Photo floue, fautes d'orthographe, adresse email peu professionnelle… Ce qu'il faut corriger avant d'envoyer votre prochaine candidature.
+                      <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-white/70">
+                        {TOP_CONSEILS[0].extrait}
                       </p>
                       <p className="mt-4 flex items-center gap-2 text-xs font-medium text-white/60">
                         <Clock className="size-3.5 shrink-0 text-brand-orange" />
-                        8 min de lecture · CV & Lettre de motivation
+                        {TOP_CONSEILS[0].lecture} min de lecture · {catOf(TOP_CONSEILS[0].cat).label}
                       </p>
                       <div className="mt-5 flex items-center gap-5 border-t border-white/10 pt-4 text-[11px] text-white/60">
                         <span>
-                          <strong className="font-heading text-sm font-bold text-white">{TOTAL_GUIDES}</strong> guides pratiques
+                          <strong className="font-heading text-sm font-bold text-white">{ARTICLES.length}</strong> conseils publiés
                         </span>
                         <span>
-                          <strong className="font-heading text-sm font-bold text-white">12</strong> modèles à télécharger
+                          <strong className="font-heading text-sm font-bold text-white">{fmtVus(TOP_CONSEILS[0].vus)}</strong> lectures
                         </span>
                       </div>
                       <Link
-                        to="/conseils/cv-lettre"
+                        to={`/conseils/${TOP_CONSEILS[0].slug}`}
                         className="group mt-auto inline-flex w-fit items-center gap-2 rounded-md bg-brand-orange px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:brightness-110"
                       >
                         Lire l'article
@@ -606,7 +603,6 @@ const Header = () => {
                     </div>
                   </aside>
                 </div>
-
                 {/* Bandeau bas */}
                 <div className="flex flex-col items-start justify-between gap-3 border-t border-outline-variant/40 bg-surface-container-low/60 px-5 py-4 sm:flex-row sm:items-center md:px-8 lg:px-12">
                   <p className="flex items-center gap-2 text-[13px] text-on-surface-variant">
@@ -683,41 +679,18 @@ const Header = () => {
                         </motion.div>
                       </AccordionContent>
                     </AccordionItem>
-
-                    {/* ---- Accordéon Conseils ---- */}
-                    <AccordionItem value="conseils" className="border-outline-variant/30">
-                      <AccordionTrigger className="rounded-md px-3 py-2.5 data-[state=open]:bg-surface-container-low/80 hover:bg-surface-container-low/80 hover:no-underline">
-                        <span className="text-sm font-semibold text-on-surface-variant">Conseils carrière</span>
-                      </AccordionTrigger>
-
-                      <AccordionContent className="px-2 pb-3 pt-1 [&_a]:no-underline">
-                        <Link
-                          to="/conseils"
-                          className="mb-2 flex items-center justify-between rounded-md bg-brand-orange px-3 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-primary hover:text-white!"
-                        >
-                          Voir tous les conseils
-                          <ArrowRight className="size-4" />
-                        </Link>
-                        <p className="mb-1.5 mt-2 px-1 font-heading text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Thèmes de conseils
-                        </p>
-                        <motion.div
-                          variants={listVariants}
-                          initial="hidden"
-                          animate="visible"
-                          className="grid grid-cols-2"
-                        >
-                          {CONSEILS.map((c) => (
-                            <MenuTile key={c.to} item={c} />
-                          ))}
-                        </motion.div>
-                      </AccordionContent>
-                    </AccordionItem>
                   </Accordion>
                 </div>
 
                 {/* Liens secondaires */}
                 <nav className="mt-3 flex flex-col gap-1">
+                  <Link
+                    to="/conseils"
+                    className="rounded-md px-3 py-2.5 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-brand-navy"
+                  >
+                    Conseils & Analyses
+                  </Link>
+
                   {NAV_LINKS_AFTER.map((l) => (
                     <Link
                       key={l.to}

@@ -1,4 +1,4 @@
-import { useMemo, useState, Fragment } from "react"
+import { useEffect, useMemo, useState, Fragment } from "react"
 import { Link } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import {
@@ -17,6 +17,7 @@ import { getImgSource } from "@/utils/utilsSource"
 import { filieresSeo } from "@/lib/seo"
 import { CountUp, CountdownEnvoi, Ticker, FiliereCard, CtaLink } from "@/components/shared"
 import { FILIERES_META as FILIERES } from "@/lib/referentiels"
+import { useUrlFilters } from "@/hooks/use-url-filters"
 
 /* ════════════════════════════════════════════════════════════════════
   DONNÉES — à brancher sur l'API (tables filieres + offres, v2.0)
@@ -297,12 +298,30 @@ const BandeMechanique = () => (
   PAGE
 ════════════════════════════════════════════════════════════════════ */
 
+const CONFIG_FILTRES = {
+  scalars: [
+    { key: "sort", param: "tri", defaut: "volume" },
+    { key: "query", param: "q", defaut: "" },
+  ],
+}
+
 const Filieres = () => {
-  const [query, setQuery] = useState("")
-  const [sort, setSort] = useState("volume")
+  const { valeurs, setScalar } = useUrlFilters(CONFIG_FILTRES)
+  const sort = ["volume", "az"].includes(valeurs.sort) ? valeurs.sort : "volume"
+  const setSort = (k) => setScalar("sort", k)
+
+  /* Recherche : champ local réactif → URL debouncée */
+  const [queryLocale, setQueryLocale] = useState(valeurs.query)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setQueryLocale(valeurs.query) }, [valeurs.query])
+  useEffect(() => {
+    if (queryLocale === valeurs.query) return
+    const t = setTimeout(() => setScalar("query", queryLocale), 350)
+    return () => clearTimeout(t)
+  }, [queryLocale, valeurs.query, setScalar])
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = queryLocale.trim().toLowerCase()
     let list = FILIERES.filter(
       (f) =>
         !q ||
@@ -313,9 +332,9 @@ const Filieres = () => {
     if (sort === "volume") list = [...list].sort((a, b) => b.actives - a.actives)
     else list = [...list].sort((a, b) => a.label.localeCompare(b.label, "fr"))
     return list
-  }, [query, sort])
+  }, [queryLocale, sort])
 
-  const q = query.trim()
+  const q = queryLocale.trim()
   const large = filtered.filter((f) => TOP3.includes(f.code) && !q)
   const compact = filtered.filter((f) => !large.includes(f))
 
@@ -365,15 +384,15 @@ const Filieres = () => {
               <div className="relative w-full sm:w-80">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  value={queryLocale}
+                  onChange={(e) => setQueryLocale(e.target.value)}
                   placeholder="Rechercher une filière ou un métier…"
                   aria-label="Rechercher une filière"
                   className="h-10 w-full rounded-lg border border-outline-variant/60 bg-white pl-9 pr-9 text-sm outline-none transition-all placeholder:text-muted-foreground/70 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/10"
                 />
-                {query && (
+                {queryLocale && (
                   <button
-                    onClick={() => setQuery("")}
+                    onClick={() => setQueryLocale("")}
                     aria-label="Effacer la recherche"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-brand-navy"
                   >
@@ -424,7 +443,7 @@ const Filieres = () => {
                 <h3 className="mt-4 font-heading text-lg font-bold text-brand-navy">Aucune filière trouvée</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Essayez « tech », « santé », « transit »…</p>
                 <button
-                  onClick={() => setQuery("")}
+                  onClick={() => setQueryLocale("")}
                   className="mt-5 inline-flex items-center gap-2 rounded-lg border border-brand-navy/20 px-5 py-2.5 text-sm font-bold text-brand-navy transition-all hover:border-brand-navy hover:bg-brand-navy hover:text-white"
                 >
                   Effacer la recherche

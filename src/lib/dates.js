@@ -17,3 +17,8 @@ export const todayLong = () => {
   const s = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
+export const dateLabel = (jours) => {
+  if (jours === 0) return "Aujourd'hui"
+  if (jours === 1) return "Hier"
+  return addDays(new Date(), -jours).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+}

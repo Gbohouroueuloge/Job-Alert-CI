@@ -9,8 +9,10 @@ import { useEffect } from "react";
 import DetailsFiliere from "./Pages/Filieres/DetailsFiliere";
 import Filieres from "./Pages/Filieres";
 import Offres from "./Pages/Offres";
-import DetailsOffre from "./Pages/DetailsOffre";
+import DetailsOffre from "./Pages/Offres/DetailsOffre";
 import BootLoader from "./components/BootLoader";
+import Conseils from "./Pages/Conseils";
+import DetailsConseil from "./Pages/Conseils/DetailsConseil";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -47,6 +49,8 @@ const App = () => {
             <Route path="filieres" element={<Filieres />} />
             <Route path="filieres/:filiere" element={<DetailsFiliere />} />
             <Route path="/offres/:id" element={<DetailsOffre />} />
+            <Route path="/conseils" element={<Conseils />} />
+            <Route path="/conseils/:slug" element={<DetailsConseil />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -143,7 +143,7 @@ const OfferCard = ({
     >
       <div className="flex gap-4 p-4 sm:p-5">
         {/* Rail date */}
-        <div className="hidden w-14 shrink-0 flex-col items-center justify-center rounded-lg border border-outline-variant/40 bg-surface-container-low/70 sm:flex">
+        <div className="hidden w-14 max-h-38 shrink-0 flex-col items-center justify-center rounded-lg border border-outline-variant/40 bg-surface-container-low/70 sm:flex">
           {isNew ? (
             <>
               <span className="font-heading text-sm font-extrabold text-brand-orange">AUJ</span>

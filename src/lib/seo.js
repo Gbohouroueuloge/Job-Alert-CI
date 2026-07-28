@@ -484,3 +484,147 @@ export const filiereSeo = ({ meta, filiere, offres = [] }) => {
     },
   }
 }
+
+export const conseilsSeo = ({ total = 0, categories = [], featuredArticles = [] } = {}) => {
+  const topArticles = featuredArticles.slice(0, 8)
+  const topCategories = categories
+    .slice(0, 4)
+    .map((cat) => cat.label)
+    .filter(Boolean)
+
+  const description = clampText(
+    `Explorez ${Number(total).toLocaleString("fr-FR")} conseils emploi en Cote d'Ivoire, ` +
+      `ecrits a partir des offres collectees par JobAlert CI et classes par theme. ` +
+      "CV, entretien, salaire, marche et recherche d'emploi au meme endroit."
+  )
+
+  return {
+    title: "Conseils emploi en Cote d'Ivoire | JobAlert CI",
+    description,
+    path: "/conseils",
+    image: "/screen.png",
+    imageAlt: "Apercu de la bibliotheque de conseils JobAlert CI",
+    keywords: joinKeywords(
+      "conseils emploi Cote d'Ivoire",
+      "conseils recherche emploi Abidjan",
+      "CV entretien salaire",
+      topCategories,
+      "JobAlert CI"
+    ),
+    type: "website",
+    locale: "fr_CI",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "CollectionPage",
+          "@id": `${siteUrl}/conseils#webpage`,
+          url: `${siteUrl}/conseils`,
+          name: "Conseils emploi en Cote d'Ivoire | JobAlert CI",
+          description,
+          inLanguage: "fr-CI",
+          isPartOf: {
+            "@id": `${siteUrl}/#website`,
+          },
+          about: {
+            "@id": `${siteUrl}/#service`,
+          },
+          primaryImageOfPage: absoluteUrl("/screen.png"),
+        },
+        makeBreadcrumb([
+          { name: "Accueil", url: `${siteUrl}/` },
+          { name: "Conseils", url: `${siteUrl}/conseils` },
+        ]),
+        {
+          "@type": "ItemList",
+          "@id": `${siteUrl}/conseils#itemlist`,
+          name: "Conseils mis en avant",
+          numberOfItems: topArticles.length,
+          itemListElement: topArticles.map((article, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: article.titre,
+            url: `${siteUrl}/conseils/${article.slug}`,
+          })),
+        },
+      ],
+    },
+  }
+}
+
+export const conseilSeo = ({ article, cat, contenu, slug } = {}) => {
+  if (!article) {
+    return {
+      title: "Conseil introuvable | JobAlert CI",
+      description:
+        "Le conseil demande est introuvable. Retournez a la bibliotheque de conseils emploi sur JobAlert CI.",
+      path: "/conseils",
+      image: "/screen.png",
+      imageAlt: "Conseil introuvable sur JobAlert CI",
+      type: "website",
+      locale: "fr_CI",
+      noindex: true,
+    }
+  }
+
+  const articleSlug = slug || article.slug
+  const title = `${article.titre} | Conseils emploi | JobAlert CI`
+  const description = clampText(
+    contenu?.intro
+      ? `${contenu.intro} ${article.extrait}`
+      : `${article.extrait} Conseil emploi ecrit a partir des offres collectees par JobAlert CI.`
+  )
+  const categoryLabel = cat?.label || article.cat
+  const keywords = joinKeywords(
+    article.titre,
+    categoryLabel,
+    "conseils emploi Cote d'Ivoire",
+    article.extrait,
+    contenu?.tags || []
+  )
+
+  return {
+    title,
+    description,
+    path: `/conseils/${articleSlug}`,
+    image: "/screen.png",
+    imageAlt: `${article.titre} sur JobAlert CI`,
+    keywords,
+    type: "article",
+    locale: "fr_CI",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          "@id": `${siteUrl}/conseils/${articleSlug}#article`,
+          mainEntityOfPage: `${siteUrl}/conseils/${articleSlug}`,
+          headline: article.titre,
+          description,
+          articleSection: categoryLabel,
+          inLanguage: "fr-CI",
+          isPartOf: {
+            "@id": `${siteUrl}/#website`,
+          },
+          about: {
+            "@id": `${siteUrl}/#service`,
+          },
+          author: {
+            "@type": "Organization",
+            name: SITE_NAME,
+            url: `${siteUrl}/`,
+          },
+          publisher: {
+            "@id": `${siteUrl}/#organization`,
+          },
+          image: absoluteUrl("/screen.png"),
+        },
+        makeBreadcrumb([
+          { name: "Accueil", url: `${siteUrl}/` },
+          { name: "Conseils", url: `${siteUrl}/conseils` },
+          { name: article.titre, url: `${siteUrl}/conseils/${articleSlug}` },
+        ]),
+      ],
+    },
+  }
+}

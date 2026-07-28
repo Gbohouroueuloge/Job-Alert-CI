@@ -1,5 +1,5 @@
 
-import { Fragment, useMemo, useRef, useState } from "react"
+import { Fragment, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import {
@@ -25,6 +25,8 @@ import { HUES } from "@/lib/hues"
 import { FILIERES_META, SOURCES, CONTRATS, EXPERIENCES, NIVEAUX, SORTS } from "@/lib/referentiels"
 import { startOfDay, addDays, sameDay, fmtDay } from "@/lib/dates"
 import useClickOutside from "@/hooks/use-click-outside"
+import { useUrlFilters } from "@/hooks/use-url-filters"
+
 
 /* ════════════════════════════════════════════════════════════════════
   DONNÉES
@@ -400,7 +402,7 @@ const HeroFiliere = ({ meta, hue, offres }) => {
                 Créer une alerte {meta.label}
               </Link>
 
-              <CtaLink to="/comment-ca-marche" variant="secondary" icon={LayoutGrid}>
+              <CtaLink to="/filieres" variant="secondary" icon={LayoutGrid}>
                 Toutes les filieres
               </CtaLink>
             </motion.div>
@@ -606,6 +608,23 @@ const AutresFilieres = ({ codeActuel }) => (
 
 /* ──────────────────────────────────────────────────────────────────── */
 
+/* ═══ Filtres ↔ URL : /filieres/tech-dev?spec=Data+%26+IA&tri=az ═══ */
+const CONFIG_FILTRES = {
+  sets: [
+    { key: "sources", param: "src" },
+    { key: "contrats", param: "ct" },
+    { key: "experiences", param: "exp" },
+    { key: "niveaux", param: "niv" },
+    { key: "specialites", param: "spec" },
+  ],
+  scalars: [
+    { key: "sort", param: "tri", defaut: "recent" },
+    { key: "view", param: "vue", defaut: "list" },
+    { key: "query", param: "q", defaut: "" },
+  ],
+  period: { debut: "du", fin: "au" },
+}
+
 const DetailsFiliere = () => {
   const { filiere } = useParams()
   const meta = FILIERES_META.find((f) => f.code === filiere)
@@ -613,17 +632,21 @@ const DetailsFiliere = () => {
   const offres = useMemo(() => (meta ? OFFRES[meta.code] || [] : []), [meta])
   const seo = filiereSeo({ meta, filiere, offres })
 
-  const [filters, setFilters] = useState({
-    query: "",
-    sources: new Set(),
-    contrats: new Set(),
-    experiences: new Set(),
-    niveaux: new Set(),
-    specialites: new Set(),
-    period: { start: null, end: null },
-  })
-  const [sort, setSort] = useState("recent")
-  const [view, setView] = useState("list")
+  const { filters, valeurs, toggle, setScalar, setPeriod, reset } = useUrlFilters(CONFIG_FILTRES)
+  const sort = SORTS.some((s) => s.k === valeurs.sort) ? valeurs.sort : "recent"
+  const view = valeurs.view === "grid" ? "grid" : "list"
+  const setSort = (k) => setScalar("sort", k)
+  const setView = (v) => setScalar("view", v)
+
+  const [queryLocale, setQueryLocale] = useState(valeurs.query)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setQueryLocale(valeurs.query) }, [valeurs.query])
+  useEffect(() => {
+    if (queryLocale === valeurs.query) return
+    const t = setTimeout(() => setScalar("query", queryLocale), 350)
+    return () => clearTimeout(t)
+  }, [queryLocale, valeurs.query, setScalar])
+  
   const [saved, setSaved] = useState(new Set())
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [openPop, setOpenPop] = useState(null)
@@ -631,27 +654,6 @@ const DetailsFiliere = () => {
 
   useClickOutside(sortRef, () => setOpenPop((p) => (p === "sort" ? null : p)))
 
-  const toggle = (key, value) =>
-    setFilters((prev) => {
-      const next = new Set(prev[key])
-      next.has(value) ? next.delete(value) : next.add(value)
-      return { ...prev, [key]: next }
-    })
-
-  const setPeriod = (period) => setFilters((prev) => ({ ...prev, period }))
-
-  const resetFilters = () => {
-    setFilters({
-      query: "",
-      sources: new Set(),
-      contrats: new Set(),
-      experiences: new Set(),
-      niveaux: new Set(),
-      specialites: new Set(),
-      period: { start: null, end: null },
-    })
-    setSort("recent")
-  }
 
   /* Compteurs par option (dans la filière) */
   const counts = useMemo(() => {
@@ -668,7 +670,7 @@ const DetailsFiliere = () => {
 
   /* Filtrage + tri */
   const filtered = useMemo(() => {
-    const q = filters.query.trim().toLowerCase()
+    const q = queryLocale.trim().toLowerCase()
     const today = startOfDay(new Date())
     let list = offres.filter((o) => {
       if (q && !(o.titre.toLowerCase().includes(q) || o.entreprise.toLowerCase().includes(q))) return false
@@ -689,7 +691,7 @@ const DetailsFiliere = () => {
     if (sort === "az") list = [...list].sort((a, b) => a.titre.localeCompare(b.titre, "fr"))
     if (sort === "ent") list = [...list].sort((a, b) => a.entreprise.localeCompare(b.entreprise, "fr"))
     return list
-  }, [offres, filters, sort])
+  }, [offres, filters, sort, queryLocale])
 
   /* Filtres actifs (chips) */
   const activeChips = useMemo(() => {
@@ -710,7 +712,7 @@ const DetailsFiliere = () => {
       chips.push({ key: "p", label: `Depuis le ${fmtDay(start)}`, rm: () => setPeriod({ start: null, end: null }) })
     }
     return chips
-  }, [filters])
+  }, [filters.contrats, filters.experiences, filters.niveaux, filters.period, filters.sources, filters.specialites, setPeriod, toggle])
 
   const activeCount =
     filters.sources.size + filters.contrats.size + filters.experiences.size +
@@ -758,15 +760,15 @@ const DetailsFiliere = () => {
               <div className="relative w-56">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <input
-                  value={filters.query}
-                  onChange={(e) => setFilters((p) => ({ ...p, query: e.target.value }))}
+                  value={queryLocale}
+                  onChange={(e) => setQueryLocale(e.target.value)}
                   placeholder="Rechercher un poste, une entreprise…"
                   aria-label="Rechercher"
                   className="h-9 w-full rounded-lg border border-outline-variant/60 bg-surface-container-lowest pl-9 pr-8 text-[13px] outline-none transition-all placeholder:text-muted-foreground/70 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/10"
                 />
                 {filters.query && (
                   <button
-                    onClick={() => setFilters((p) => ({ ...p, query: "" }))}
+                    onClick={() => setQueryLocale("")}
                     aria-label="Effacer la recherche"
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-brand-navy"
                   >
@@ -883,8 +885,8 @@ const DetailsFiliere = () => {
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <input
-                  value={filters.query}
-                  onChange={(e) => setFilters((p) => ({ ...p, query: e.target.value }))}
+                  value={queryLocale}
+                  onChange={(e) => setQueryLocale(e.target.value)}
                   placeholder="Rechercher…"
                   aria-label="Rechercher"
                   className="h-10 w-full rounded-lg border border-outline-variant/60 bg-surface-container-lowest pl-9 pr-3 text-sm outline-none transition-all placeholder:text-muted-foreground/70 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/10"
@@ -920,7 +922,7 @@ const DetailsFiliere = () => {
           resultCount={filtered.length}
           sort={sort}
           onSort={setSort}
-          onReset={resetFilters}
+          onReset={() => reset() + setQueryLocale("")}
           ctaClassName={hue.solid}
         >
           <OfferFilterGroups
@@ -979,7 +981,7 @@ const DetailsFiliere = () => {
                       </button>
                     ))}
                     <button
-                      onClick={resetFilters}
+                      onClick={() => reset() + setQueryLocale("")}
                       className="text-xs font-bold text-brand-orange transition-colors hover:underline"
                     >
                       Tout effacer
@@ -1003,7 +1005,7 @@ const DetailsFiliere = () => {
                     Essayez d'élargir vos filtres ou de modifier votre recherche.
                   </p>
                   <button
-                    onClick={resetFilters}
+                    onClick={() => reset() + setQueryLocale("")}
                     className="mt-5 inline-flex items-center gap-2 rounded-lg border border-brand-navy/20 px-5 py-2.5 text-sm font-bold text-brand-navy transition-all hover:border-brand-navy hover:bg-brand-navy hover:text-white"
                   >
                     Réinitialiser les filtres

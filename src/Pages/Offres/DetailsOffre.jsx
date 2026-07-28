@@ -1,4 +1,4 @@
-// src/pages/details-offre/index.jsx
+
 import { Fragment, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { motion } from "framer-motion"

@@ -175,7 +175,7 @@ const Footer = () => {
             </p>
 
             {/* Capture d'email */}
-            <form onSubmit={handleSubmit} className="mt-7 flex max-w-lg flex-col gap-2.5 sm:flex-row">
+            <form onSubmit={handleSubmit} className="mt-7 flex  max-w-lg flex-col gap-2.5 sm:flex-row">
               <div className="relative flex-1">
                 <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/40" />
                 <input

@@ -116,7 +116,7 @@ const PipelineCard = () => {
       initial={{ opacity: 0, y: 32, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
-      className="relative"
+      className="relative min-w-0"
     >
       {/* Chips sources flottantes (position absolue → aucun impact layout) */}
       {[
@@ -200,7 +200,7 @@ const PipelineCard = () => {
                       <motion.span
                         animate={{ opacity: st === "active" ? 1 : 0 }}
                         transition={{ duration: 0.25 }}
-                        className="animate-pulse text-[10px] font-bold uppercase tracking-wider text-brand-orange"
+                        className={cn("animate-pulse text-[10px] font-bold uppercase tracking-wider text-brand-orange", st !== "active" && "hidden")}
                         aria-hidden={st !== "active"}
                       >
                         en cours…
@@ -208,7 +208,7 @@ const PipelineCard = () => {
                       <motion.span
                         animate={{ opacity: st === "done" ? 1 : 0 }}
                         transition={{ duration: 0.25 }}
-                        className="absolute inset-0 flex items-center text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400"
+                        className={cn("absolute inset-0 flex items-center text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400", st !== "done" && "hidden")}
                         aria-hidden={st !== "done"}
                       >
                         terminé
@@ -246,7 +246,7 @@ const PipelineCard = () => {
                     className="flex min-w-0 items-center gap-2 text-xs font-extrabold"
                   >
                     <MailCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                    <span className="truncate">Récapitulatif envoyé — 08h00:02</span>
+                    <span className="min-w-0 truncate">Récapitulatif envoyé — 08h00:02</span>
                   </motion.span>
                 ) : (
                   <motion.span
@@ -256,7 +256,7 @@ const PipelineCard = () => {
                     className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"
                   >
                     <Clock className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">
+                    <span className="min-w-0 truncate">
                       Envoi programmé à <span className="font-mono font-extrabold text-foreground">08h00</span>
                     </span>
                   </motion.span>
@@ -298,8 +298,8 @@ const PipelineCard = () => {
                   className="flex h-7.5 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-[11px]"
                 >
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-orange" />
-                  <span className="truncate font-semibold">{j.t}</span>
-                  <span className="truncate text-muted-foreground">— {j.e}</span>
+                  <span className="min-w-0 truncate font-semibold">{j.t}</span>
+                  <span className="min-w-0 truncate text-muted-foreground">— {j.e}</span>
                 </motion.div>
               ) : (
                 <div
@@ -328,7 +328,7 @@ const HeroHowItWorks = () => (
     <div className="relative z-10 mx-auto max-w-7xl px-6 pb-16 pt-13 md:px-12 md:pb-20 lg:pt-18">
       <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex flex-col items-start gap-5">
-          <motion.div variants={fadeUp}>
+          <motion.div variants={fadeUp} className="hidden md:flex">
             <StatusChip tooltip="Scraping à 6h00, dédoublonnage à 6h15, filtrage à 7h00, envoi à 8h00 chaque jour, week-end compris.">
               Chaîne quotidienne active · dernier run à 6h02
             </StatusChip>
@@ -363,7 +363,7 @@ const HeroHowItWorks = () => (
             .
           </motion.h1>
 
-          <motion.p variants={fadeUp} className="max-w-xl text-lg leading-relaxed text-on-surface-variant">
+          <motion.p variants={fadeUp} className="max-w-xl md:text-lg leading-relaxed text-on-surface-variant">
             Chaque matin entre <strong className="font-semibold text-brand-navy">6h00 et 8h00</strong>, JobAlert CI
             déroule seul toute la chaîne : collecte des 4 sources, dédoublonnage, filtrage par filière, puis envoi de
             votre récapitulatif. Voici exactement ce qui se passe.

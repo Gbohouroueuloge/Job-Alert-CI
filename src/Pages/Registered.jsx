@@ -19,29 +19,33 @@ import { getImgSource } from "@/utils/utilsSource"
 import { registeredSeo } from "@/lib/seo"
 
 /* ════════════════════════════════════════════════════════════════════
-DONNÉES & OUTILS
-════════════════════════════════════════════════════════════════════ */
+   DONNÉES & OUTILS
+   ════════════════════════════════════════════════════════════════════ */
+
 const ETAPES = [
   { id: "identite", label: "Identité", icon: User },
   { id: "preferences", label: "Préférences", icon: SlidersHorizontal },
   { id: "profil", label: "Profil", icon: Briefcase, optionnel: true },
   { id: "validation", label: "Validation", icon: CheckCircle2 },
 ]
+
 const VILLES = ["Abidjan", "Bouaké", "San Pédro", "Yamoussoukro", "Korhogo", "Autre / Télétravail"]
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const stepVariants = {
-  enter: (dir) => ({ x: dir > 0 ? 64 : -64, opacity: 0 }),
+  enter: (dir) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
   center: { x: 0, opacity: 1 },
-  exit: (dir) => ({ x: dir > 0 ? -64 : 64, opacity: 0 }),
+  exit: (dir) => ({ x: dir > 0 ? -40 : 40, opacity: 0 }),
 }
 
 /* ════════════════════════════════════════════════════════════════════
-PRÉ-REMPLISSAGE DEPUIS L'URL
-/inscription?email=x@y.com
-/inscription?filieres=ressources-humaines
-/inscription?filieres=tech-dev,ressources-humaines&experience=3-5 ans&ville=Abidjan
+  PRÉ-REMPLISSAGE DEPUIS L'URL
+  /inscription?email=x@y.com
+  /inscription?filieres=ressources-humaines
+  /inscription?filieres=tech-dev,ressources-humaines&experience=3-5 ans&ville=Abidjan
 ════════════════════════════════════════════════════════════════════ */
+
 const formDepuisUrl = (searchParams) => {
   const p = Object.fromEntries(searchParams.entries())
   const liste = (v) => (v || "").split(",").map((x) => x.trim()).filter(Boolean)
@@ -83,8 +87,9 @@ const LogoSrc = ({ code, className = "size-4" }) => {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-STEPPER — progression vivante
-════════════════════════════════════════════════════════════════════ */
+   STEPPER — progression vivante
+   ════════════════════════════════════════════════════════════════════ */
+
 const Stepper = ({ step }) => (
   <div className="relative px-1">
     <div className="absolute left-5.5 right-5.5 top-5.5 h-0.5 rounded bg-outline-variant/40" aria-hidden />
@@ -115,7 +120,7 @@ const Stepper = ({ step }) => (
               {done ? <Check className="size-4" strokeWidth={3} /> : <e.icon className="size-4" />}
             </motion.span>
             <span className={cn(
-              "whitespace-nowrap text-[10px] font-bold uppercase tracking-wider",
+              "whitespace-nowrap text-[8px] md:text-[10px] font-bold uppercase tracking-wider",
               active ? "text-brand-orange" : done ? "text-brand-navy" : "text-muted-foreground"
             )}>
               {e.label}
@@ -129,8 +134,9 @@ const Stepper = ({ step }) => (
 )
 
 /* ════════════════════════════════════════════════════════════════════
-APERÇU VIVANT — le récap de demain se remplit en temps réel
+  APERÇU VIVANT — le récap de demain se remplit en temps réel
 ════════════════════════════════════════════════════════════════════ */
+
 const ApercuRecap = ({ form, offres, total }) => (
   <div className="relative mx-auto w-full max-w-md lg:max-w-none">
     <div className="absolute -inset-8 rounded-full bg-brand-orange/10 blur-3xl" aria-hidden />
@@ -147,6 +153,7 @@ const ApercuRecap = ({ form, offres, total }) => (
       <Clock className="size-3" />
       Demain, 8h00 pile
     </motion.span>
+
     <motion.span
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -265,8 +272,9 @@ const ApercuRecap = ({ form, offres, total }) => (
 )
 
 /* ════════════════════════════════════════════════════════════════════
-LES 4 ÉTAPES
+  LES 4 ÉTAPES
 ════════════════════════════════════════════════════════════════════ */
+
 const EtapeIdentite = ({ form, setField, emailOk }) => (
   <div>
     <h2 className="font-heading text-2xl font-extrabold tracking-tight text-brand-navy sm:text-3xl">
@@ -411,7 +419,7 @@ const EtapePreferences = ({ form, toggleFiliere }) => {
                 <f.icon className="size-4.5" strokeWidth={2} />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-[12px] font-bold leading-tight text-brand-navy">{f.label}</span>
+                <span className="block truncate-2 md:truncate text-[12px] font-bold leading-tight text-brand-navy">{f.label}</span>
                 <span className="mt-0.5 block text-[10px] font-medium text-muted-foreground">{f.actives} offres actives</span>
               </span>
               <AnimatePresence>
@@ -439,6 +447,7 @@ const EtapePreferences = ({ form, toggleFiliere }) => {
           )
         })}
       </div>
+
       {liste.length === 0 && (
         <p className="mt-4 text-center text-sm text-muted-foreground">Aucune filière ne correspond à « {q} ».</p>
       )}
@@ -559,9 +568,9 @@ const EtapeProfil = ({ form, setField, toggleContrat, passer }) => (
 )
 
 const EtapeValidation = ({ form, total, consent, setConsent }) => {
-  const heures = new Date().toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit', second: '2-digit' }).toLowerCase()
-
+  const heures = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).toLowerCase()
   const isAutreDay = heures > "08:00:00"
+
   return (
     <div>
       <h2 className="font-heading text-2xl font-extrabold tracking-tight text-brand-navy sm:text-3xl">
@@ -571,26 +580,29 @@ const EtapeValidation = ({ form, total, consent, setConsent }) => {
         Voici votre alerte. Tout est modifiable plus tard, en un clic depuis chaque email.
       </p>
 
-      <div className="mt-6 space-y-2.5">
+      <div className="mt-6 divide-y divide-outline-variant/40 overflow-hidden rounded-lg border border-outline-variant/50 bg-white shadow-soft">
         {[
           { icon: Mail, label: "Email", value: form.email },
           { icon: User, label: "Nom", value: form.nom.trim() || "—" },
           { icon: MapPin, label: "Ville", value: form.ville || "—" },
         ].map((r) => (
-          <div key={r.label} className="flex items-center gap-3 rounded-lg border border-outline-variant/50 bg-white px-4 py-3">
+          <div key={r.label} className="flex items-center gap-3 px-4 py-3">
             <r.icon className="size-4 shrink-0 text-brand-orange" />
             <span className="w-16 shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{r.label}</span>
-            <span className="min-w-0 truncate text-sm font-semibold text-brand-navy">{r.value}</span>
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-brand-navy">{r.value}</span>
           </div>
         ))}
-        <div className="rounded-lg border border-outline-variant/50 bg-white px-4 py-3">
+
+        <div className="px-4 py-3">
           <div className="flex items-center gap-3">
             <SlidersHorizontal className="size-4 shrink-0 text-brand-orange" />
             <span className="w-16 shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Filières</span>
+            <span className="text-[11px] font-bold text-muted-foreground">{form.filieres.length}/3</span>
           </div>
           <div className="mt-2.5 flex flex-wrap gap-2">
             {form.filieres.map((code) => {
               const f = FILIERES_META.find((x) => x.code === code)
+              if (!f) return null
               const hue = HUES[f.hue]
               return (
                 <span key={code} className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold", hue.tile)}>
@@ -632,8 +644,9 @@ const EtapeValidation = ({ form, total, consent, setConsent }) => {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-ÉCRAN DE SUCCÈS
+  ÉCRAN DE SUCCÈS
 ════════════════════════════════════════════════════════════════════ */
+
 const SUITE = [
   { icon: Mail, t: "Maintenant", l: "Email de confirmation envoyé" },
   { icon: Radar, t: "06h02", l: "Collecte des 4 sources" },
@@ -641,10 +654,8 @@ const SUITE = [
   { icon: Send, t: "08h00", l: "Votre premier récap arrive" },
 ]
 
-
 const EcranSucces = ({ form, total }) => {
-  const heures = new Date().toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit', second: '2-digit' }).toLowerCase()
-
+  const heures = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).toLowerCase()
   const isAutreDay = heures > "08:00:00"
 
   return (
@@ -705,8 +716,9 @@ const EcranSucces = ({ form, total }) => {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-PAGE
-════════════════════════════════════════════════════════════════════ */
+   PAGE
+   ════════════════════════════════════════════════════════════════════ */
+
 const Registered = () => {
   const [searchParams] = useSearchParams()
   const [step, setStep] = useState(0)
@@ -717,7 +729,9 @@ const Registered = () => {
   const [submitted, setSubmitted] = useState(false)
 
   const emailOk = EMAIL_RE.test(form.email.trim())
+
   const setField = (k, v) => setForm((p) => ({ ...p, [k]: v }))
+
   const toggleFiliere = (code) =>
     setForm((p) => {
       const has = p.filieres.includes(code)
@@ -725,6 +739,7 @@ const Registered = () => {
       if (p.filieres.length >= 3) return p
       return { ...p, filieres: [...p.filieres, code] }
     })
+
   const toggleContrat = (c) =>
     setForm((p) => ({
       ...p,
@@ -735,6 +750,7 @@ const Registered = () => {
     () => ALL_OFFRES.filter((o) => form.filieres.includes(o.filiere)).length,
     [form.filieres]
   )
+
   const offresApercu = useMemo(
     () =>
       ALL_OFFRES
@@ -745,6 +761,7 @@ const Registered = () => {
   )
 
   const canNext = step === 0 ? emailOk : step === 1 ? form.filieres.length >= 1 : true
+
   const goNext = () => { setDirection(1); setStep((s) => Math.min(s + 1, 3)) }
   const goBack = () => { setDirection(-1); setStep((s) => Math.max(s - 1, 0)) }
   const passer = () => { setDirection(1); setStep(3) }
@@ -779,7 +796,7 @@ const Registered = () => {
               <ChevronRight className="size-3" />
               <span className="font-semibold text-brand-navy">Inscription</span>
             </div>
-            <Link to="/offres" className="group inline-flex items-center gap-1.5 text-xs font-bold text-brand-navy transition-colors hover:text-brand-orange">
+            <Link to="/offres" className="group hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-brand-navy transition-colors hover:text-brand-orange">
               Déjà abonné ? Voir les offres du jour
               <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
@@ -796,7 +813,9 @@ const Registered = () => {
               >
                 <Stepper step={step} />
 
-                <div className="mt-8">
+                {/* Viewport des étapes — overflow-hidden : le glissement
+                    d'entrée/sortie ne déborde jamais de la carte ni de la page */}
+                <div className="mt-8 overflow-hidden">
                   <AnimatePresence mode="wait" custom={direction} initial={false}>
                     <motion.div
                       key={step}
@@ -874,6 +893,11 @@ const Registered = () => {
               </motion.div>
             </div>
           )}
+
+          <Link to="/offres" className="group md:hidden mt-8 flex items-center justify-end gap-1.5 text-xs font-bold text-brand-navy transition-colors hover:text-brand-orange">
+            Déjà abonné ? Voir les offres du jour
+            <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
         </div>
       </main>
     </>

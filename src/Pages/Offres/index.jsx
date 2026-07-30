@@ -49,7 +49,7 @@ const FluxCard = ({ parSource, nouveaux }) => (
     initial={{ opacity: 0, y: 32, rotate: 1.5 }}
     animate={{ opacity: 1, y: 0, rotate: 0 }}
     transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-    className="relative mx-auto w-full max-w-md md:max-w-none"
+    className="relative mx-auto w-full max-w-md min-w-0 md:max-w-none"
   >
     <div className="absolute -inset-8 rounded-full bg-brand-orange/10 blur-3xl" aria-hidden />
     <div className="absolute inset-0 translate-x-4 translate-y-5 rotate-2 overflow-hidden rounded-2xl bg-brand-navy" aria-hidden>
@@ -172,7 +172,7 @@ const FluxCard = ({ parSource, nouveaux }) => (
                     />
                   </span>
                 )}
-                <span className="flex items-center gap-2">
+                <span className="flex min-w-0 items-center gap-2">
                   <span className={cn(
                     "relative grid size-7 shrink-0 place-items-center rounded-full border bg-white",
                     s.done ? "border-emerald-500/40 text-emerald-600" : "border-brand-orange/50 text-brand-orange"
@@ -184,9 +184,9 @@ const FluxCard = ({ parSource, nouveaux }) => (
                       </span>
                     )}
                   </span>
-                  <span className="leading-tight">
-                    <span className="block text-[10px] font-black text-brand-navy">{s.t}</span>
-                    <span className="block text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{s.l}</span>
+                  <span className="hidden min-w-0 leading-tight sm:block">
+                    <span className="block truncate text-[10px] font-black text-brand-navy">{s.t}</span>
+                    <span className="block truncate text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{s.l}</span>
                   </span>
                 </span>
               </Fragment>
@@ -230,7 +230,7 @@ const HeroOffres = ({ total, nouveaux, parSource }) => (
           initial="hidden"
           animate="visible"
           variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
-          className="flex flex-col items-start gap-5"
+          className="flex min-w-0 flex-col items-start gap-5"
         >
           {/* Badges collecte */}
           <motion.div
@@ -283,7 +283,7 @@ const HeroOffres = ({ total, nouveaux, parSource }) => (
           {/* Message */}
           <motion.p
             variants={{ hidden: { opacity: 0, y: 22 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } } }}
-            className="max-w-xl text-lg leading-relaxed text-on-surface-variant"
+            className="max-w-xl md:text-lg leading-relaxed text-on-surface-variant"
           >
             {nouveaux} opportunités collectées ce matin sur EmploiDakar CI, GoAfrica, Novojob
             et LinkedIn, dé-dupliquées par hash puis taggées par filière. Demain, inutile de
@@ -489,7 +489,7 @@ const Offres = () => {
       chips.push({ key: "p", label: `Depuis le ${fmtDay(start)}`, rm: () => setPeriod({ start: null, end: null }) })
     }
     return chips
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters])
 
   const activeCount =
@@ -710,7 +710,7 @@ const Offres = () => {
           resultCount={filtered.length}
           sort={sort}
           onSort={setSort}
-          onReset={() => {reset() + setQueryLocale("")}}
+          onReset={() => { reset() + setQueryLocale("") }}
         >
           <OfferFilterGroups filters={filters} toggle={toggle} counts={stats.counts} onPeriod={setPeriod} />
         </FiltersDrawer>
@@ -761,7 +761,7 @@ const Offres = () => {
                       </button>
                     ))}
                     <button
-                      onClick={() => {reset() + setQueryLocale("")}}
+                      onClick={() => { reset() + setQueryLocale("") }}
                       className="text-xs font-bold text-brand-orange transition-colors hover:underline"
                     >
                       Tout effacer
@@ -784,7 +784,7 @@ const Offres = () => {
                   Élargissez vos filtres — ou attendez la collecte de demain 6h02.
                 </p>
                 <button
-                  onClick={() => {reset() + setQueryLocale("")}}
+                  onClick={() => { reset() + setQueryLocale("") }}
                   className="mt-5 inline-flex items-center gap-2 rounded-lg border border-brand-navy/20 px-5 py-2.5 text-sm font-bold text-brand-navy transition-all hover:border-brand-navy hover:bg-brand-navy hover:text-white"
                 >
                   Réinitialiser les filtres

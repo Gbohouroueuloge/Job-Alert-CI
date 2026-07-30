@@ -94,7 +94,7 @@ const CartePostuler = ({ offre, hue, hash, saved, onToggleSave, copied, onCopy }
     initial={{ opacity: 0, y: 32, rotate: 1.5 }}
     animate={{ opacity: 1, y: 0, rotate: 0 }}
     transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-    className="relative mx-auto w-full max-w-md lg:max-w-none"
+    className="relative mx-auto w-full max-w-md min-w-0 md:max-w-none"
   >
     <div className={cn("absolute -inset-8 rounded-full blur-3xl", hue.glow)} aria-hidden />
     <div className="absolute inset-0 translate-x-4 translate-y-5 rotate-2 overflow-hidden rounded-2xl bg-brand-navy" aria-hidden>
@@ -413,7 +413,7 @@ const CarteEntreprise = ({ offre }) => {
           <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">offre(s) active(s) sur JobAlert CI</p>
         </div>
         <div className="rounded-lg bg-surface-container-low/70 px-4 py-3">
-          <p className="font-heading text-2xl font-black text-brand-navy">{offre.jours === 0 ? "Aujourd'hui" : `Il y a ${offre.jours} j`}</p>
+          <p className="font-heading md:text-2xl font-black text-brand-navy">{offre.jours === 0 ? "Aujourd'hui" : `Il y a ${offre.jours} j`}</p>
           <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">publication sur {offre.source}</p>
         </div>
       </div>

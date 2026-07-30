@@ -41,7 +41,7 @@ const CarteBrief = ({ a, cat, hue, contenu }) => {
       initial={{ opacity: 0, y: 32, rotate: 1.5 }}
       animate={{ opacity: 1, y: 0, rotate: 0 }}
       transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="relative mx-auto w-full max-w-md md:max-w-none"
+      className="relative mx-auto w-full max-w-md min-w-0 md:max-w-none"
     >
       <div className={cn("absolute -inset-8 rounded-full blur-3xl", hue.glow)} aria-hidden />
 
@@ -169,7 +169,7 @@ const EnTeteArticle = ({ a, cat, hue, contenu, copied, onCopy }) => {
               {a.titre}
             </motion.h1>
 
-            <motion.p variants={fadeUp} className="max-w-2xl text-lg leading-relaxed text-on-surface-variant">
+            <motion.p variants={fadeUp} className="max-w-2xl md:text-lg leading-relaxed text-on-surface-variant">
               {a.extrait}
             </motion.p>
 

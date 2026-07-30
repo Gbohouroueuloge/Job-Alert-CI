@@ -23,32 +23,10 @@ import { CountUp, SectionHeading, CtaLink, FeedOffreCard, TemoignageCard, FaqSec
 /*  Données                                                            */
 /* ------------------------------------------------------------------ */
 
-const FILIERES_POPULAIRES = [
-  {
-    label: "Tech & Dev", to: "/filieres/tech-dev", dot: "bg-sky-500",
-    hover: "hover:border-sky-300 hover:bg-sky-50"
-  },
-  {
-    label: "Ressources Humaines", to: "/filieres/ressources-humaines", dot: "bg-violet-500",
-    hover: "hover:border-violet-300 hover:bg-violet-50"
-  },
-  {
-    label: "BTP & Génie Civil", to: "/filieres/btp-genie-civil", dot: "bg-amber-500",
-    hover: "hover:border-amber-300 hover:bg-amber-50"
-  },
-  {
-    label: "Santé & Médical", to: "/filieres/sante-medical", dot: "bg-rose-500",
-    hover: "hover:border-rose-300 hover:bg-rose-50"
-  },
-]
-
 const REASSURANCES = [
   "100 % gratuit, sans mot de passe",
   "1 seul email par jour, pas plus",
   "Désinscription en 1 clic",
-  "Pas de doublons",
-  "Rapport quotidien",
-  "0% de spam",
 ]
 
 const JOBS_APERCU = [
@@ -271,7 +249,7 @@ const Hero = () => {
       />
       <div className="absolute -bottom-40 -left-40 size-120 rounded-full bg-brand-navy/4 blur-3xl" aria-hidden />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-12 md:pb-20 lg:pt-10">
+      <div className="relative z-10 mx-auto md:max-w-7xl px-4 pb-16 pt-8 md:px-12 md:pb-20 lg:pt-10">
         <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
           {/* Colonne gauche */}
           <motion.div
@@ -329,7 +307,7 @@ const Hero = () => {
             </motion.h1>
 
             {/* Sous-titre */}
-            <motion.p variants={fadeUp} className="max-w-xl text-lg leading-relaxed text-on-surface-variant">
+            <motion.p variants={fadeUp} className="max-w-xl md:text-lg leading-relaxed text-on-surface-variant">
               Chaque matin à <strong className="font-semibold text-brand-navy">8h00</strong>, recevez par email
               les meilleures offres d'emploi de Côte d'Ivoire, filtrées selon votre métier. Quatre sources
               scannées, un seul email, zéro doublon.
@@ -352,38 +330,6 @@ const Hero = () => {
                 </li>
               ))}
             </motion.ul>
-
-            {/* Filières populaires */}
-            <motion.div variants={fadeUp} className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Populaire
-              </span>
-              {FILIERES_POPULAIRES.map((f) => (
-                <Link
-                  key={f.to}
-                  to={f.to}
-                  className={cn(
-                    "group inline-flex items-center gap-2 rounded-full border border-outline-variant/60 bg-white/80 px-3.5 py-1.5 text-[13px] font-semibold text-on-surface-variant backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:text-brand-navy hover:shadow-soft",
-                    f.hover
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "size-2 rounded-full transition-transform duration-200 group-hover:scale-125",
-                      f.dot
-                    )}
-                  />
-                  {f.label}
-                </Link>
-              ))}
-              <Link
-                to="/filieres"
-                className="group inline-flex items-center gap-1 px-1.5 py-1.5 text-[13px] font-bold text-brand-orange transition-colors hover:text-brand-navy"
-              >
-                Les 13 filières
-                <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </Link>
-            </motion.div>
           </motion.div>
 
           {/* ═══ Colonne droite — le produit : l'email de 8h00 ══════ */}
@@ -391,7 +337,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 36, rotate: 1.5 }}
             animate={{ opacity: 1, y: 0, rotate: 0 }}
             transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="relative mx-auto w-full max-w-md md:max-w-none"
+            className="relative mx-auto w-full max-w-md min-w-0 md:max-w-none"
           >
             {/* Halo + carte navy décalée */}
             <div className="absolute -inset-8 rounded-full bg-brand-orange/10 blur-3xl" aria-hidden />

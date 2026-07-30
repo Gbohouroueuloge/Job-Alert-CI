@@ -23,11 +23,11 @@ const Ticker = ({ variant = "light", label, items = [], duration = 48, className
       )}>
         {dark ? (
           <>
-            <span className="relative flex size-1.5">
+            <span className="relative hidden md:flex size-1.5">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-70" />
               <span className="relative inline-flex size-1.5 rounded-full bg-white" />
             </span>
-            <Radio className="size-3" />
+            <Radio className="size-3 hidden md:flex" />
           </>
         ) : (
           <span className="relative flex size-2">
@@ -35,7 +35,7 @@ const Ticker = ({ variant = "light", label, items = [], duration = 48, className
             <span className="relative inline-flex size-2 rounded-full bg-brand-orange" />
           </span>
         )}
-        <span className="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.16em]">
+        <span className="whitespace-nowrap text-[9px] md:text-[11px] font-black uppercase tracking-[0.16em]">
           {label ?? (dark ? "En direct" : "Collecte du jour")}
         </span>
       </div>

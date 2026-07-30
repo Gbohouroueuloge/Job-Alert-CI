@@ -52,7 +52,7 @@ const CollectePanel = () => {
       initial={{ opacity: 0, y: 32, rotate: 1.5 }}
       animate={{ opacity: 1, y: 0, rotate: 0 }}
       transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="relative mx-auto w-full max-w-md md:max-w-none"
+      className="relative mx-auto w-full max-w-md min-w-0 md:max-w-none"
     >
       <div className="absolute -inset-8 rounded-full bg-brand-orange/10 blur-3xl" aria-hidden />
       <div className="absolute inset-0 translate-x-4 translate-y-5 rotate-2 overflow-hidden rounded-2xl bg-brand-navy" aria-hidden>
@@ -182,7 +182,7 @@ const HeroFilieres = () => (
 
           <motion.p
             variants={{ hidden: { opacity: 0, y: 22 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } } }}
-            className="max-w-xl text-lg leading-relaxed text-on-surface-variant"
+            className="max-w-xl md:text-lg leading-relaxed text-on-surface-variant"
           >
             JobAlert CI scanne chaque jour les 4 grandes plateformes d'emploi ivoiriennes et vous
             envoie le meilleur de vos filières sans recherche, sans doublon, sans connexion.

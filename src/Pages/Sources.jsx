@@ -188,7 +188,7 @@ const ConsoleScan = ({ parSource }) => {
       initial={{ opacity: 0, y: 32, rotate: 1.5 }}
       animate={{ opacity: 1, y: 0, rotate: 0 }}
       transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="relative mx-auto w-full max-w-md md:max-w-none"
+      className="relative mx-auto w-full max-w-md min-w-0 md:max-w-none"
     >
       <div className="absolute -inset-8 rounded-full bg-brand-orange/10 blur-3xl" aria-hidden />
       <div className="absolute inset-0 translate-x-4 translate-y-5 rotate-2 overflow-hidden rounded-2xl bg-brand-navy" aria-hidden>
@@ -402,7 +402,7 @@ const HeroSources = ({ parSource, totalNouveaux }) => (
             <span className="mt-1 block">0 doublon.</span>
           </motion.h1>
 
-          <motion.p variants={fadeUp} className="max-w-xl text-lg leading-relaxed text-on-surface-variant">
+          <motion.p variants={fadeUp} className="max-w-xl md:text-lg leading-relaxed text-on-surface-variant">
             Chaque matin à <strong className="font-semibold text-brand-navy">6h00</strong>, nos scrapers
             parcourent les 4 grandes plateformes d'emploi d'Afrique de l'Ouest pour n'en garder que
             l'essentiel : <strong className="font-semibold text-brand-navy">vos offres</strong>. Voici qui
@@ -729,7 +729,7 @@ const BandeauDedup = () => (
           </div>
 
           {/* Visualisation concrète */}
-          <div className="rounded-xl bg-white p-5 shadow-hover">
+          <div className="rounded-xl bg-white p-5 shadow-hover min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Même annonce, deux sources
             </p>
@@ -855,7 +855,7 @@ const Sources = () => {
         <HeroSources parSource={stats} totalNouveaux={totalNouveaux} />
         <Ticker
           variant="dark"
-          label="En direct des sources"
+          label="En direct"
           duration={220}
           items={ALL_OFFRES.map((o) => ({
             key: o.uid,

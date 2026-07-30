@@ -1,8 +1,8 @@
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
   ArrowRight, ArrowUpDown, ArrowUpRight, Bell, BookOpen, ChevronDown,
-  ChevronRight, Clock, Flame, Lightbulb, Newspaper,
+  ChevronLeft, ChevronRight, Clock, Flame, Lightbulb, MoveHorizontal, Newspaper,
   Search, SearchX, SlidersHorizontal, TrendingUp, X, Zap,
 } from "lucide-react"
 import { Link } from "react-router-dom"
@@ -18,7 +18,6 @@ import {
 import {
   Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle,
 } from "@/components/ui/drawer"
-
 import { ARTICLES, CATEGORIES, CONSEILS_QUOTIDIENS, SERIES, catOf, fmtVus } from "@/data/conseils"
 import { dateLabel } from "@/lib/dates";
 import { CarteArticle } from "@/components/shared"
@@ -26,25 +25,65 @@ import { useUrlFilters } from "@/hooks/use-url-filters"
 import { conseilsSeo } from "@/lib/seo"
 
 /* ════════════════════════════════════════════════════════════════════
-DONNÉES — v2.0 : table pages_contenu (type = article)
+  OUTILS
 ════════════════════════════════════════════════════════════════════ */
 
-
-/* ════════════════════════════════════════════════════════════════════
-OUTILS
-════════════════════════════════════════════════════════════════════ */
 const containerVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
 }
+
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
 }
 
+const SEUIL_SWIPE_PX = 56        // distance minimale pour valider un swipe
+const SEUIL_SWIPE_VITESSE = 420  // px/s — un coup sec valide même sur courte distance
+
+const useGlissement = ({ count, idx, setIdx, pause, reprendre }) => {
+  const [direction, setDirection] = useState(1) // 1 → vers la gauche (suivant), -1 → vers la droite
+
+  const suivant = () => { setDirection(1); setIdx((i) => (i + 1) % count) }
+  const precedent = () => { setDirection(-1); setIdx((i) => (i - 1 + count) % count) }
+  const onSelect = (i) => { if (i !== idx) { setDirection(i > idx ? 1 : -1); setIdx(i) } }
+
+  /* Props à étaler sur un motion.div pour le rendre glissable */
+  const propsGlissement = {
+    drag: "x",
+    dragConstraints: { left: 0, right: 0 },
+    dragElastic: 0.15,
+    dragMomentum: false,
+    dragTransition: { bounceStiffness: 600, bounceDamping: 28 },
+    onDragStart: pause, // fige le minuteur pendant le geste
+    onDragEnd: (e, info) => {
+      reprendre()
+      const { offset, velocity } = info
+      if (offset.x < -SEUIL_SWIPE_PX || velocity.x < -SEUIL_SWIPE_VITESSE) suivant()
+      else if (offset.x > SEUIL_SWIPE_PX || velocity.x > SEUIL_SWIPE_VITESSE) precedent()
+    },
+  }
+
+  return { direction, onSelect, propsGlissement }
+}
+
+/* Variants directionnels — le contenu entre et sort dans le sens du swipe */
+const variantsGlissement = {
+  entrer: (dir) => ({ opacity: 0, x: 64 * dir }),
+  visible: { opacity: 1, x: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+  sortir: (dir) => ({ opacity: 0, x: -48 * dir, transition: { duration: 0.28, ease: "easeIn" } }),
+}
+
+const variantsGlissementDoux = {
+  entrer: (dir) => ({ opacity: 0, x: 32 * dir }),
+  visible: { opacity: 1, x: 0, transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] } },
+  sortir: (dir) => ({ opacity: 0, x: -24 * dir, transition: { duration: 0.25, ease: "easeIn" } }),
+}
+
 /* ════════════════════════════════════════════════════════════════════
-HERO — l'article à la une, en carte navy signature
-════════════════════════════════════════════════════════════════════ */
+   HERO — l'article à la une, en carte navy signature
+   ════════════════════════════════════════════════════════════════════ */
+
 const A_LA_UNE = [
   "recruteurs-abidjan-repondent-48h",
   "negocier-salaire-abidjan-fourchettes-2026",
@@ -57,6 +96,9 @@ const CarteUne = () => {
   const { idx, setIdx, progression, pause, reprendre } = useCarrousel({
     count: A_LA_UNE.length,
     duree: DUREE_UNE,
+  })
+  const { direction, onSelect, propsGlissement } = useGlissement({
+    count: A_LA_UNE.length, idx, setIdx, pause, reprendre,
   })
 
   const a = A_LA_UNE[idx]
@@ -71,7 +113,7 @@ const CarteUne = () => {
       transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
       onMouseEnter={pause}
       onMouseLeave={reprendre}
-      className="relative mx-auto w-full max-w-md md:max-w-none"
+      className="relative mx-auto w-full max-w-md min-w-0 md:max-w-none"
     >
       {/* Halo — suit la teinte de la catégorie affichée */}
       <motion.div
@@ -107,6 +149,7 @@ const CarteUne = () => {
         <Clock className="size-3 text-brand-orange" />
         {a.lecture} min de lecture
       </motion.span>
+
       <motion.span
         key={`vus-${a.slug}`}
         initial={{ opacity: 0, scale: 0.85 }}
@@ -122,8 +165,11 @@ const CarteUne = () => {
         {fmtVus(a.vus)} lectures
       </motion.span>
 
-      {/* Carte navy */}
-      <div className="relative flex flex-col overflow-hidden rounded-2xl bg-brand-navy text-white shadow-[0_24px_48px_-16px_rgba(15,45,77,0.35)]">
+      {/* Carte navy — glissable horizontalement (doigt ou souris) */}
+      <motion.div
+        {...propsGlissement}
+        className="relative flex cursor-grab select-none flex-col overflow-hidden rounded-2xl bg-brand-navy text-white shadow-[0_24px_48px_-16px_rgba(15,45,77,0.35)] active:cursor-grabbing"
+      >
         <div className="pointer-events-none absolute inset-0 bg-pattern opacity-20" aria-hidden />
         <motion.div
           className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full blur-3xl"
@@ -153,7 +199,7 @@ const CarteUne = () => {
             count={A_LA_UNE.length}
             idx={idx}
             progression={progression}
-            onSelect={setIdx}
+            onSelect={onSelect}
             tone="dark"
             labels={A_LA_UNE.map((a) => a.titre)}
           />
@@ -189,17 +235,20 @@ const CarteUne = () => {
               {a.lecture} min
             </motion.span>
           </AnimatePresence>
+          {/* Indice de glissement — écrans tactiles uniquement */}
+          <MoveHorizontal className="pointer-coarse:block hidden size-3.5 shrink-0 text-white/40" aria-hidden />
         </div>
 
-        {/* Corps — hauteur stabilisée, contenu en rotation */}
+        {/* Corps — hauteur stabilisée, contenu en rotation directionnelle */}
         <div className="relative flex min-h-90 flex-1 flex-col sm:min-h-94">
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence mode="wait" initial={false} custom={direction}>
             <motion.div
               key={a.slug}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              custom={direction}
+              variants={variantsGlissement}
+              initial="entrer"
+              animate="visible"
+              exit="sortir"
               className="flex flex-1 flex-col px-6 py-6"
             >
               <span className={cn("inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white", hue.solid)}>
@@ -232,7 +281,7 @@ const CarteUne = () => {
             </motion.div>
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
@@ -290,7 +339,7 @@ const HeroConseils = () => {
               .
             </motion.h1>
 
-            <motion.p variants={fadeUp} className="max-w-xl text-lg leading-relaxed text-on-surface-variant">
+            <motion.p variants={fadeUp} className="max-w-xl md:text-lg leading-relaxed text-on-surface-variant">
               CV, entretiens, salaires, tendances par filière : des conseils concrets, écrits à
               partir des <strong className="font-semibold text-brand-navy">47 offres collectées chaque matin</strong> sur
               nos 4 sources. Pas de théorie, du terrain.
@@ -332,8 +381,9 @@ const HeroConseils = () => {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-CONSEIL DU JOUR — 7 conseils en rotation, pause au survol
+  CONSEIL DU JOUR — 7 conseils en rotation, pause au survol, swipe
 ════════════════════════════════════════════════════════════════════ */
+
 const DUREE_CONSEIL = 5000 // ms par conseil
 
 const ConseilDuJour = () => {
@@ -341,9 +391,14 @@ const ConseilDuJour = () => {
     count: CONSEILS_QUOTIDIENS.length,
     duree: DUREE_CONSEIL,
   })
+  const { direction, onSelect, propsGlissement } = useGlissement({
+    count: CONSEILS_QUOTIDIENS.length, idx, setIdx, pause, reprendre,
+  })
+
   const conseil = CONSEILS_QUOTIDIENS[idx]
   const cat = catOf(conseil.cat)
   const hue = HUES[cat.hue]
+
   return (
     <section
       onMouseEnter={pause}
@@ -361,20 +416,25 @@ const ConseilDuJour = () => {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center gap-3 py-4 pl-5 sm:flex-row sm:items-center sm:gap-5">
+        {/* Zone glissable — doigt ou souris */}
+        <motion.div
+          {...propsGlissement}
+          className="flex flex-1 cursor-grab select-none flex-col justify-center gap-3 py-4 pl-5 active:cursor-grabbing sm:flex-row sm:items-center sm:gap-5"
+        >
           <span className={cn("grid size-9 shrink-0 place-items-center rounded-lg transition-colors duration-500", hue.tile)}>
             <Lightbulb className="size-4.5" />
           </span>
 
-          {/* Texte — hauteur réservée, fondu vertical à chaque rotation */}
+          {/* Texte — hauteur réservée, glissement directionnel à chaque rotation */}
           <div className="min-h-12 flex-1 sm:min-h-10">
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence mode="wait" initial={false} custom={direction}>
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                custom={direction}
+                variants={variantsGlissementDoux}
+                initial="entrer"
+                animate="visible"
+                exit="sortir"
               >
                 <p className="text-[13px] font-medium leading-relaxed text-on-surface sm:text-sm">{conseil.t}</p>
                 <p className={cn("mt-1 text-[10px] font-bold uppercase tracking-[0.14em]", hue.accent)}>{cat.label}</p>
@@ -387,7 +447,7 @@ const ConseilDuJour = () => {
               count={CONSEILS_QUOTIDIENS.length}
               idx={idx}
               progression={progression}
-              onSelect={setIdx}
+              onSelect={onSelect}
               tone="light"
               className="w-24 sm:w-28"
               labels={CONSEILS_QUOTIDIENS.map((c) => c.t)}
@@ -395,18 +455,22 @@ const ConseilDuJour = () => {
             <span className="rounded-full bg-surface-container px-2.5 py-1 text-[10px] font-bold text-on-surface-variant">
               n° {idx + 1} / {CONSEILS_QUOTIDIENS.length}
             </span>
+            {/* Indice de glissement — écrans tactiles uniquement */}
+            <MoveHorizontal className="pointer-coarse:block hidden size-3.5 text-muted-foreground/60" aria-hidden />
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   )
 }
 
 /* ════════════════════════════════════════════════════════════════════
-SIDEBAR — les plus lus (HoverCard), séries, alerte 8h00
+  SIDEBAR — les plus lus (HoverCard), séries, alerte 8h00
 ════════════════════════════════════════════════════════════════════ */
+
 const PlusLus = () => {
   const top = [...ARTICLES].sort((a, b) => b.vus - a.vus).slice(0, 5)
+
   return (
     <div className="rounded-xl border border-outline-variant/40 bg-white p-5 shadow-soft">
       <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
@@ -512,8 +576,9 @@ const MiniAlerte = () => (
 )
 
 /* ════════════════════════════════════════════════════════════════════
-BIBLIOTHÈQUE — filtres par thème + recherche + tri, sidebar sticky
+  BIBLIOTHÈQUE — filtres par thème + recherche + tri + pagination
 ════════════════════════════════════════════════════════════════════ */
+
 const CONFIG_FILTRES = {
   scalars: [
     { key: "cat", param: "cat", defaut: "tous" },
@@ -522,13 +587,90 @@ const CONFIG_FILTRES = {
   ],
 }
 
+const PAR_PAGE = 9
+
+/* Numéros de pages affichés, avec ellipses au-delà de 7 pages */
+const pagesAvecEllipses = (page, totalPages) => {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1)
+  const ens = new Set([1, totalPages, page - 1, page, page + 1])
+  if (page <= 3) [2, 3, 4].forEach((p) => ens.add(p))
+  if (page >= totalPages - 2) [totalPages - 1, totalPages - 2, totalPages - 3].forEach((p) => ens.add(p))
+  const liste = [...ens].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b)
+  const avec = []
+  let prec = 0
+  for (const p of liste) {
+    if (p - prec > 1) avec.push("…")
+    avec.push(p)
+    prec = p
+  }
+  return avec
+}
+
+const Pagination = ({ page, totalPages, depart, nbVisibles, total, onChange }) => {
+  if (totalPages <= 1) return null
+
+  return (
+    <nav aria-label="Pagination des conseils" className="mt-10 flex flex-col items-center gap-2.5">
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => onChange(page - 1)}
+          disabled={page === 1}
+          aria-label="Page précédente"
+          className="grid size-9 place-items-center rounded-lg border border-outline-variant/60 bg-white text-on-surface-variant shadow-soft transition-all duration-200 enabled:hover:-translate-x-0.5 enabled:hover:border-brand-navy/40 enabled:hover:text-brand-navy enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronLeft className="size-4" />
+        </button>
+
+        {pagesAvecEllipses(page, totalPages).map((p, i) =>
+          p === "…" ? (
+            <span key={`points-${i}`} aria-hidden className="px-0.5 text-sm font-bold text-muted-foreground/60">…</span>
+          ) : (
+            <button
+              type="button"
+              key={p}
+              onClick={() => onChange(p)}
+              aria-label={`Page ${p}`}
+              aria-current={p === page ? "page" : undefined}
+              className={cn(
+                "size-9 rounded-lg text-sm font-bold transition-all duration-200",
+                p === page
+                  ? "bg-brand-navy text-white shadow-hover"
+                  : "border border-outline-variant/60 bg-white text-on-surface-variant shadow-soft hover:border-brand-navy/40 hover:text-brand-navy active:scale-95"
+              )}
+            >
+              {p}
+            </button>
+          )
+        )}
+
+        <button
+          type="button"
+          onClick={() => onChange(page + 1)}
+          disabled={page === totalPages}
+          aria-label="Page suivante"
+          className="grid size-9 place-items-center rounded-lg border border-outline-variant/60 bg-white text-on-surface-variant shadow-soft transition-all duration-200 enabled:hover:translate-x-0.5 enabled:hover:border-brand-navy/40 enabled:hover:text-brand-navy enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronRight className="size-4" />
+        </button>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        Conseils <strong className="font-heading font-bold text-brand-navy">{depart + 1}–{depart + nbVisibles}</strong>{" "}
+        sur <strong className="font-heading font-bold text-brand-navy">{total}</strong> · page {page}/{totalPages}
+      </p>
+    </nav>
+  )
+}
 
 const GrilleArticles = () => {
   const { valeurs, setScalar, reset } = useUrlFilters(CONFIG_FILTRES)
+
   const cat = valeurs.cat === "tous" || CATEGORIES.some((c) => c.code === valeurs.cat)
     ? valeurs.cat
     : "tous"
   const sort = ["recents", "populaires", "courts"].includes(valeurs.sort) ? valeurs.sort : "recents"
+
   const setCat = (code) => setScalar("cat", code)
   const setSort = (k) => setScalar("sort", k)
 
@@ -543,7 +685,6 @@ const GrilleArticles = () => {
   }, [queryLocale, valeurs.query, setScalar])
 
   const activeCount = (cat !== "tous" ? 1 : 0) + (sort !== "recents" ? 1 : 0)
-
   const resetFilters = () => {
     reset() + setQueryLocale("")
   }
@@ -567,6 +708,22 @@ const GrilleArticles = () => {
     return list
   }, [cat, queryLocale, sort])
 
+  /* ── Pagination — retour page 1 dès qu'un filtre ou la recherche change ── */
+  const [page, setPage] = useState(1)
+  const grilleRef = useRef(null)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setPage(1) }, [cat, sort, queryLocale])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAR_PAGE))
+  const pageCourante = Math.min(page, totalPages)
+  const depart = (pageCourante - 1) * PAR_PAGE
+  const visibles = filtered.slice(depart, depart + PAR_PAGE)
+
+  const changerPage = (p) => {
+    if (p < 1 || p > totalPages || p === pageCourante) return
+    setPage(p)
+    grilleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
 
   return (
     <>
@@ -587,6 +744,7 @@ const GrilleArticles = () => {
         <div className="hidden flex-col gap-3 lg:flex">
           {/* 9 chips > 7 → 6 visibles + popover « +3 autres » */}
           <ChipsFiltres chips={chipsDefs} actif={cat} onSelect={setCat} />
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-80">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -607,6 +765,7 @@ const GrilleArticles = () => {
                 </button>
               )}
             </div>
+
             <div className="flex items-center gap-3 sm:ml-auto">
               <span className="text-xs text-muted-foreground">
                 <strong className="font-heading text-sm font-bold text-brand-navy">{filtered.length}</strong> conseil{filtered.length > 1 ? "s" : ""}
@@ -684,6 +843,7 @@ const GrilleArticles = () => {
               {filtered.length} conseil{filtered.length > 1 ? "s" : ""} correspondant{filtered.length > 1 ? "s" : ""}. Bibliothèque mise à jour chaque mardi
             </DrawerDescription>
           </DrawerHeader>
+
           <div className="flex-1 overflow-y-auto px-5 py-5">
             <FilterGroup title="Thème" icon={Lightbulb}>
               <div className="flex flex-wrap gap-2 px-1 pt-1">
@@ -692,6 +852,7 @@ const GrilleArticles = () => {
                 ))}
               </div>
             </FilterGroup>
+
             <div className="mt-6 border-t border-outline-variant/40 pt-5">
               <FilterGroup title="Trier par" icon={ArrowUpDown}>
                 <div className="grid grid-cols-2 gap-2 px-1">
@@ -717,6 +878,7 @@ const GrilleArticles = () => {
               </FilterGroup>
             </div>
           </div>
+
           <DrawerFooter className="border-t border-outline-variant/40 px-5 py-4">
             <div className="flex items-center gap-3">
               <button
@@ -737,7 +899,7 @@ const GrilleArticles = () => {
       </Drawer>
 
       {/* ═══════════ Grille + sidebar ═══════════ */}
-      <section className="bg-background py-10 md:py-12">
+      <section ref={grilleRef} className="scroll-mt-28 bg-background py-10 md:py-12">
         <div className="mx-auto max-w-7xl px-6 md:px-12">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div>
@@ -758,19 +920,31 @@ const GrilleArticles = () => {
                   </button>
                 </motion.div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <AnimatePresence mode="popLayout">
-                    {filtered.map((a, i) => (
-                      <CarteArticle
-                        key={a.slug}
-                        a={a}
-                        index={i}
-                        large={i === 0 && cat === "tous" && !queryLocale.trim()}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </div>
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <AnimatePresence mode="popLayout">
+                      {visibles.map((a, i) => (
+                        <CarteArticle
+                          key={a.slug}
+                          a={a}
+                          index={i}
+                          large={pageCourante === 1 && i === 0 && cat === "tous" && !queryLocale.trim()}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+
+                  <Pagination
+                    page={pageCourante}
+                    totalPages={totalPages}
+                    depart={depart}
+                    nbVisibles={visibles.length}
+                    total={filtered.length}
+                    onChange={changerPage}
+                  />
+                </>
               )}
+
               <p className="mt-8 flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="size-1.5 rounded-full bg-brand-orange" />
                 Nouveau conseil chaque mardi à 6h02 · écrit à partir des offres collectées la veille
@@ -790,8 +964,9 @@ const GrilleArticles = () => {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-BANDE DATA — les conseils naissent de la collecte
+  BANDE DATA — les conseils naissent de la collecte
 ════════════════════════════════════════════════════════════════════ */
+
 const BandeDonnees = () => (
   <section className="bg-surface-container-lowest pb-16 md:pb-20">
     <div className="mx-auto max-w-7xl px-6 md:px-12">
@@ -821,6 +996,7 @@ const BandeDonnees = () => (
               qui nourrit nos conseils, pas l'inverse.
             </p>
           </div>
+
           <div className="grid grid-cols-3 gap-3">
             {[
               { v: 47, l: "offres analysées / jour" },
@@ -848,8 +1024,9 @@ const BandeDonnees = () => (
 )
 
 /* ════════════════════════════════════════════════════════════════════
-PAGE
+  PAGE
 ════════════════════════════════════════════════════════════════════ */
+
 const Conseils = () => (
   <>
     <Seo {...conseilsSeo({ total: ARTICLES.length, categories: CATEGORIES, featuredArticles: ARTICLES })} />

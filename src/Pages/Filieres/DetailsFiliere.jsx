@@ -158,7 +158,7 @@ const RecapCard = ({ meta, hue, offres }) => {
       initial={{ opacity: 0, y: 36, rotate: 1.5 }}
       animate={{ opacity: 1, y: 0, rotate: 0 }}
       transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="relative mx-auto w-full max-w-md md:max-w-none"
+      className="relative mx-auto w-full max-w-md min-w-0 md:max-w-none"
     >
       <div className={cn("absolute -inset-8 rounded-full blur-3xl", hue.glow)} aria-hidden />
 
@@ -357,7 +357,7 @@ const HeroFiliere = ({ meta, hue, offres }) => {
               variants={{ hidden: { opacity: 0, y: 22 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } } }}
             >
               <p className={cn("font-heading text-base font-bold sm:text-lg", hue.accent)}>{meta.tagline}</p>
-              <p className="mt-2 max-w-xl text-lg leading-relaxed text-on-surface-variant">
+              <p className="mt-2 max-w-xl md:text-lg leading-relaxed text-on-surface-variant">
                 {meta.desc} Recevez les nouveautés de la filière chaque matin à 8h00 directement dans votre boîte mail des abonnés, sans recherche, sans doublon.
               </p>
             </motion.div>

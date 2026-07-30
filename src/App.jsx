@@ -42,7 +42,7 @@ const App = () => {
 
   return (
     <TooltipProvider>
-      {!ready && <BootLoader onFinish={() => setReady(true)} />}
+      {/* {!ready && <BootLoader onFinish={() => setReady(true)} />} */}
 
       <BrowserRouter>
         <ScrollToTop />

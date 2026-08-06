@@ -19,3 +19,16 @@ GET http://127.0.0.1:8000/offers
 Accept: application/json
 
 ###
+
+GET http://127.0.0.1:8000/api/offers/stats
+Accept: application/json
+
+###
+
+GET http://127.0.0.1:8000/api/offers/stats/by-filiere?new_since_days=14&limit=10
+Accept: application/json
+
+###
+
+GET http://127.0.0.1:8000/api/offers/stats/by-source?visible_only=true&active_only=true&new_date_field=published_at
+Accept: application/json

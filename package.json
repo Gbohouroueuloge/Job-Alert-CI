@@ -1,0 +1,27 @@
+{
+  "name": "job-alert-ci",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start:client": "cd ./client && npm run dev",
+    "start:server": "cd ./server && uvicorn main:app --reload --port 8000",
+    "dev": "concurrently \"cd ./server && uvicorn main:app --reload --port 8001\" \"cd ./client && npm run dev\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JobAlert-CI/Job-Alert-CI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JobAlert-CI/Job-Alert-CI/issues"
+  },
+  "homepage": "https://github.com/JobAlert-CI/Job-Alert-CI#readme",
+  "dependencies": {
+    "concurrently": "^10.0.4"
+  }
+}

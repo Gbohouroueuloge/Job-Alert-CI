@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import contact, health, offers, referentials, subscriptions
+from api.routers import contact, health, offers, referentials, stats, subscriptions
 from core.config import get_settings
 from db.session import init_db
 
@@ -34,10 +34,11 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
-app.include_router(referentials.router)
-app.include_router(offers.router)
-app.include_router(subscriptions.router)
-app.include_router(contact.router)
+app.include_router(referentials.router, prefix="/api")
+app.include_router(stats.router, prefix="/api")
+app.include_router(offers.router,  prefix="/api")
+app.include_router(subscriptions.router,  prefix="/api")
+app.include_router(contact.router,  prefix="/api")
 
 
 @app.get("/", tags=["system"])

@@ -1,0 +1,23 @@
+# Cache Python
+__pycache__/
+
+# Environnement virtuel Python
+.venv/
+venv/
+
+# Dossier propre à VSCODE
+.vscode/
+
+# Base SQLite locale generee en developpement
+*.db
+*.sqlite
+*.sqlite3
+
+# Les versions Alembic doivent etre suivies par Git.
+!migrations/versions/
+!migrations/versions/.gitkeep
+
+# Certificats pour le HTTPS
+certificats/
+
+.env

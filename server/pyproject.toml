@@ -1,0 +1,15 @@
+[project]
+name = "jobalert-ci-server"
+version = "0.1.0"
+description = "API backend for JobAlert CI"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.52.1",
+    "sqlalchemy>=2.0.51",
+    "alembic>=1.13.3",
+    "psycopg[binary]>=3.2.3",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

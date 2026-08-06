@@ -1,0 +1,4 @@
+Migrations Alembic de JobAlert CI.
+
+Pourquoi : en production, modifier le schema avec Alembic est plus fiable que
+`create_all`, car chaque evolution est versionnee, relue et reversible.

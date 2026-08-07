@@ -7,18 +7,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-.env
-.env.*
-!.env.example
-!.env.production
-
-server/generated/
-.codex_tmp/
-
 node_modules
 dist
 dist-ssr
 *.local
+
+*/stich/*
 
 # Editor directories and files
 .vscode/*

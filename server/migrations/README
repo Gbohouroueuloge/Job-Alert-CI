@@ -1,0 +1,9 @@
+Migrations Alembic de JobAlert CI.
+
+Commandes utiles depuis server/:
+
+  alembic upgrade head
+  alembic revision --autogenerate -m "description"
+  alembic downgrade -1
+
+Le DSN est lu depuis server/.env via core.config.

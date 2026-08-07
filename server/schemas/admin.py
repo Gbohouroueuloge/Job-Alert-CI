@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+from schemas.base import TimestampRead
+
+
+class DashboardStatsRead(BaseModel):
+    offers_total: int
+    offers_active: int
+    subscribers_total: int
+    subscribers_active: int
+    contact_messages_new: int
+    sources_active: int
+
+
+class DashboardOverviewRead(DashboardStatsRead):
+    """Vue d'ensemble élargie du tableau de bord."""
+    last_scrape_run_at: datetime | None = None
+    last_scrape_status: str | None = None
+    pending_digests: int = 0
+
+
+# ─── Auth ────────────────────────────────────────────────
+
+class AdminLogin(BaseModel):
+    email: str = Field(min_length=5, max_length=320)
+    password: str = Field(min_length=1)
+
+
+class TokenRead(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    admin_id: str
+    role: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(min_length=10)
+
+
+# ─── Administrator ───────────────────────────────────────
+
+class AdminRead(TimestampRead):
+    id: str
+    email: str
+    full_name: str
+    role: str
+    is_active: bool
+    last_login_at: datetime | None = None
+
+
+AdminRoleLiteral = Literal[
+    "super_admin", "gestionnaire_offres", "gestionnaire_utilisateurs", "moderateur"
+]
+
+
+class AdminCreate(BaseModel):
+    email: str = Field(min_length=5, max_length=320)
+    password: str = Field(min_length=8, max_length=128)
+    full_name: str = Field(min_length=2, max_length=180)
+    role: AdminRoleLiteral = "moderateur"
+
+
+class AdminUpdate(BaseModel):
+    email: str | None = Field(default=None, min_length=5, max_length=320)
+    full_name: str | None = Field(default=None, min_length=2, max_length=180)
+    is_active: bool | None = None
+
+
+class AdminRoleUpdate(BaseModel):
+    role: AdminRoleLiteral
+
+
+class AdminChangePassword(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, max_length=128)

@@ -10,13 +10,14 @@ from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from models.enums import ScrapeRunStatus
 from models.types import enum_column
 
-"""Domaine scraping et supervision de collecte.
+"""Suivi de collecte.
 
-Tracer chaque run global et chaque run par source donne une base
-solide pour les alertes, les retries et le diagnostic en back-office.
+Les runs globaux et par source donnent une base fiable pour les retries, les
+alertes et le tableau de bord admin.
 """
 
 if TYPE_CHECKING:
+    from models.emails import EmailDigest
     from models.jobs import OfferIngestionEvent
     from models.referentials import Source
 
@@ -25,8 +26,9 @@ class ScrapeRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "scrape_runs"
 
     run_date: Mapped[date] = mapped_column(Date, index=True, nullable=False)
-    status: Mapped[ScrapeRunStatus] = mapped_column(enum_column(ScrapeRunStatus), default=ScrapeRunStatus.PENDING,
-                                                    index=True, nullable=False)
+    status: Mapped[ScrapeRunStatus] = mapped_column(
+        enum_column(ScrapeRunStatus), default=ScrapeRunStatus.PENDING, index=True, nullable=False
+    )
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     triggered_by: Mapped[str] = mapped_column(String(80), default="scheduler", nullable=False)
@@ -38,10 +40,9 @@ class ScrapeRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     source_runs: Mapped[list["SourceScrapeRun"]] = relationship(
-        back_populates="scrape_run",
-        cascade="all, delete-orphan",
-        order_by="SourceScrapeRun.started_at",
+        back_populates="scrape_run", cascade="all, delete-orphan", order_by="SourceScrapeRun.started_at"
     )
+    digests: Mapped[list["EmailDigest"]] = relationship(back_populates="scrape_run")
 
     __table_args__ = (
         UniqueConstraint("run_date", "triggered_by", name="uq_scrape_runs_date_triggered_by"),
@@ -56,11 +57,11 @@ class ScrapeRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 class SourceScrapeRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "source_scrape_runs"
 
-    scrape_run_id: Mapped[str] = mapped_column(ForeignKey("scrape_runs.id", ondelete="CASCADE"), index=True,
-                                               nullable=False)
+    scrape_run_id: Mapped[str] = mapped_column(ForeignKey("scrape_runs.id", ondelete="CASCADE"), index=True, nullable=False)
     source_id: Mapped[str] = mapped_column(ForeignKey("sources.id", ondelete="RESTRICT"), index=True, nullable=False)
-    status: Mapped[ScrapeRunStatus] = mapped_column(enum_column(ScrapeRunStatus), default=ScrapeRunStatus.PENDING,
-                                                    index=True, nullable=False)
+    status: Mapped[ScrapeRunStatus] = mapped_column(
+        enum_column(ScrapeRunStatus), default=ScrapeRunStatus.PENDING, index=True, nullable=False
+    )
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -1,56 +1,99 @@
-from datetime import UTC, datetime
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from secrets import token_urlsafe
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.config import get_settings
-from models import ContractType, Filiere, Subscriber, SubscriberContractPreference, SubscriberFiliere, SubscriberStatus
+from models import (
+    ContractType,
+    ExperienceLevel,
+    Filiere,
+    Subscriber,
+    SubscriberContractPreference,
+    SubscriberFiliere,
+    SubscriberStatus,
+    SubscriberToken,
+    TokenPurpose,
+)
 from schemas.subscriptions import SubscriberCreate
+from services.normalization import normalize_text, token_hash
+
+
+def _lookup_by_code_or_label(db: Session, model, value: str | None):
+    if not value:
+        return None
+    normalized = normalize_text(value)
+    stmt = select(model).where(
+        (model.code == value) | (model.label == value) | (model.code == normalized)
+    )
+    return db.scalar(stmt)
 
 
 def create_subscriber(db: Session, payload: SubscriberCreate) -> Subscriber:
-    """Cree un abonnement dans une transaction courte.
+    """Cree ou remet a jour un abonne.
 
-    Pourquoi : la regle metier "1 a 3 filieres" doit etre verifiee cote
-    application, car elle depend d'un nombre de lignes liees. On valide aussi
-    que les ids recus existent avant d'ecrire les associations.
+    Les emails sont dedoublonnes en minuscule. Les preferences sont remplacees
+    a chaque inscription pour que le formulaire puisse servir aussi de mise a
+    jour simple.
     """
 
-    filiere_ids = list(dict.fromkeys(payload.filiere_ids))
-    if not 1 <= len(filiere_ids) <= 3:
-        raise ValueError("Choisissez entre 1 et 3 filieres")
-
-    found_filieres = set(db.scalars(select(Filiere.id).where(Filiere.id.in_(filiere_ids))))
-    missing_filieres = set(filiere_ids) - found_filieres
-    if missing_filieres:
-        raise ValueError("Une ou plusieurs filieres sont inconnues")
-
-    contract_type_ids = list(dict.fromkeys(payload.contract_type_ids))
-    if contract_type_ids:
-        found_contracts = set(db.scalars(select(ContractType.id).where(ContractType.id.in_(contract_type_ids))))
-        if set(contract_type_ids) - found_contracts:
-            raise ValueError("Un ou plusieurs types de contrat sont inconnus")
-
     settings = get_settings()
-    subscriber = Subscriber(
-        email=payload.email,
-        email_normalized=payload.email.lower(),
-        full_name=payload.full_name,
-        city=payload.city,
-        status=SubscriberStatus.PENDING,
-        timezone=settings.timezone,
-        wants_career_tips=payload.wants_career_tips,
-        experience_level_id=payload.experience_level_id,
-        subscribed_at=datetime.now(UTC),
-    )
-    db.add(subscriber)
-    db.flush()
+    email_normalized = payload.email.strip().lower()
+    now = datetime.now(timezone.utc)
+    subscriber = db.scalar(select(Subscriber).where(Subscriber.email_normalized == email_normalized))
 
-    for index, filiere_id in enumerate(filiere_ids, start=1):
-        db.add(SubscriberFiliere(subscriber_id=subscriber.id, filiere_id=filiere_id, priority=index))
+    if subscriber is None:
+        subscriber = Subscriber(
+            email=payload.email.strip(),
+            email_normalized=email_normalized,
+            subscribed_at=now,
+            status=SubscriberStatus.ACTIVE,
+        )
+        db.add(subscriber)
+    elif subscriber.deleted_at is not None:
+        subscriber.deleted_at = None
 
-    for contract_type_id in contract_type_ids:
-        db.add(SubscriberContractPreference(subscriber_id=subscriber.id, contract_type_id=contract_type_id))
+    subscriber.full_name = payload.full_name.strip() if payload.full_name else None
+    subscriber.city = payload.city.strip() if payload.city else None
+    subscriber.timezone = settings.timezone
+    subscriber.wants_career_tips = payload.wants_career_tips
+    subscriber.source = payload.source
+    subscriber.status = SubscriberStatus.ACTIVE
+    subscriber.unsubscribed_at = None
+    subscriber.unsubscribe_reason = None
+
+    experience = _lookup_by_code_or_label(db, ExperienceLevel, payload.experience)
+    subscriber.experience_level_id = experience.id if experience else None
+
+    subscriber.filiere_links.clear()
+    unique_filieres = list(dict.fromkeys(payload.filieres))[:3]
+    if not unique_filieres:
+        raise ValueError("Selectionnez au moins une filiere")
+
+    for index, filiere_code in enumerate(unique_filieres, start=1):
+        filiere = _lookup_by_code_or_label(db, Filiere, filiere_code)
+        if filiere is None:
+            raise ValueError(f"Filiere inconnue: {filiere_code}")
+        subscriber.filiere_links.append(SubscriberFiliere(filiere_id=filiere.id, priority=index))
+
+    subscriber.contract_preferences.clear()
+    for contract_value in dict.fromkeys(payload.contract_types):
+        contract_type = _lookup_by_code_or_label(db, ContractType, contract_value)
+        if contract_type is not None:
+            subscriber.contract_preferences.append(SubscriberContractPreference(contract_type_id=contract_type.id))
+
+    # Token de gestion cree seulement si l'abonne n'en a pas deja un actif.
+    if not subscriber.tokens:
+        raw_token = token_urlsafe(32)
+        subscriber.tokens.append(
+            SubscriberToken(
+                purpose=TokenPurpose.MANAGE_ALERT,
+                token_hash=token_hash(raw_token),
+            )
+        )
 
     db.commit()
     db.refresh(subscriber)

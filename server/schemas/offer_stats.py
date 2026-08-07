@@ -1,12 +1,14 @@
-from schemas.base import ORMModel
+from __future__ import annotations
+
+from pydantic import BaseModel
 
 
-class OfferStatsSummaryRead(ORMModel):
+class OfferStatsSummaryRead(BaseModel):
     total_offers: int
     new_offers: int
 
 
-class OfferStatsBucketRead(ORMModel):
+class OfferStatsBucketRead(BaseModel):
     id: str
     code: str
     label: str

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -6,16 +8,12 @@ from sqlalchemy.orm import Session
 from api.deps import get_db
 from core.config import get_settings
 
-router = APIRouter(prefix="/health", tags=["health"])
+router = APIRouter(tags=["system"])
 
 
-@router.get("")
+@router.get("/health")
 def healthcheck(db: Session = Depends(get_db)) -> dict[str, str]:
-    """Contrôle applicatif et base de donnees.
-
-    Un endpoint de santé doit tester la DB, pas seulement retourner
-    "ok", sinon l'orchestrateur peut garder une API vivante, mais inutilisable.
-    """
+    """Sante applicative et disponibilite de la base."""
 
     settings = get_settings()
     try:
@@ -23,9 +21,14 @@ def healthcheck(db: Session = Depends(get_db)) -> dict[str, str]:
         database = "ready"
     except SQLAlchemyError:
         database = "unavailable"
-
     return {
         "status": "ok" if database == "ready" else "degraded",
         "database": database,
         "environment": settings.environment,
     }
+
+
+@router.get("/")
+def root() -> dict[str, str]:
+    settings = get_settings()
+    return {"message": "JobAlert CI API", "environment": settings.environment}

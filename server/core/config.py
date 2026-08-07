@@ -11,11 +11,10 @@ DOTENV_PATH = Path(__file__).resolve().parents[1] / ".env"
 
 
 def _load_dotenv_file() -> None:
-    """Charge `server/.env` sans dependance externe.
+    """Charge server/.env sans imposer une dependance de runtime.
 
-    Pourquoi : `os.getenv()` ne lit pas un fichier `.env` tout seul. Sans ce
-    chargement, les scripts et l'API peuvent tomber sur la mauvaise base,
-    typiquement SQLite au lieu de PostgreSQL.
+    Les scripts, Alembic et Uvicorn lisent ainsi la meme configuration. Les
+    variables deja presentes dans l'environnement gardent la priorite.
     """
 
     if not DOTENV_PATH.exists():
@@ -26,12 +25,9 @@ def _load_dotenv_file() -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        key = key.strip()
-        if not key or key == "export":
-            continue
-        if key in os.environ:
-            continue
-        os.environ[key] = value.strip().strip('"').strip("'")
+        key = key.strip().removeprefix("export ").strip()
+        if key and key not in os.environ:
+            os.environ[key] = value.strip().strip('"').strip("'")
 
 
 _load_dotenv_file()
@@ -48,23 +44,22 @@ def _int_env(name: str, default: int) -> int:
     try:
         return int(raw_value)
     except ValueError as exc:
-        raise ValueError(f"{name} doit être un entier valide") from exc
+        raise ValueError(f"{name} doit etre un entier valide") from exc
 
 
 def _list_env(name: str, default: list[str]) -> list[str]:
     raw_value = getenv(name)
     if not raw_value:
         return default
-    return [item.strip() for item in raw_value.split(",") if item.strip()]
+    return [item.strip().rstrip("/") for item in raw_value.split(",") if item.strip()]
 
 
 def _database_url() -> str:
-    """Construit le DSN sans dependence externe.
+    """Construit le DSN PostgreSQL a partir de DATABASE_URL ou DB_*.
 
-    `jobalert_ci_db` avait une configuration PostgreSQL solide,
-    mais `serverFastApi` était plus pratique en local grâce à SQLite. Ici, on
-    garde les deux : DATABASE_URL gagne toujours, puis les variables DB_* pour
-    la production, puis SQLite pour lancer le serveur sans infrastructure.
+    DATABASE_URL reste prioritaire pour les plateformes cloud. Les variables
+    DB_* gardent un mode explicite pour Docker Compose et les serveurs bare
+    metal. On laisse un fallback SQLite seulement pour tests ponctuels.
     """
 
     explicit_url = getenv("DATABASE_URL")
@@ -80,20 +75,19 @@ def _database_url() -> str:
         name = getenv("DB_NAME", "jobalert_ci")
         return f"{driver}://{user}:{password}@{host}:{port}/{name}"
 
-    return "sqlite:///./jobalert2.db"
+    return "sqlite:///./jobalert_ci.db"
 
 
 @dataclass(frozen=True)
 class Settings:
-    """Configuration centrale de l'API JobAlert CI.
+    """Configuration centrale.
 
-    Pourquoi : regrouper les variables ici évite les valeurs cachées dans les
-    routes ou les services. C'est plus robuste pour les secrets, les tests et
-    les futurs déploiements multi-environnements.
+    Regrouper les valeurs ici evite les constantes dispersees dans les routes
+    et rend les futurs environnements plus simples a auditer.
     """
 
     app_name: str = field(default_factory=lambda: getenv("APP_NAME", "JobAlert CI API"))
-    app_version: str = field(default_factory=lambda: getenv("APP_VERSION", "0.1.0"))
+    app_version: str = field(default_factory=lambda: getenv("APP_VERSION", "1.0.0"))
     environment: str = field(default_factory=lambda: getenv("APP_ENV", "development"))
     timezone: str = field(default_factory=lambda: getenv("APP_TIMEZONE", "Africa/Abidjan"))
     database_url: str = field(default_factory=_database_url)
@@ -103,11 +97,14 @@ class Settings:
     db_pool_timeout: int = field(default_factory=lambda: _int_env("DB_POOL_TIMEOUT", 30))
     db_pool_recycle: int = field(default_factory=lambda: _int_env("DB_POOL_RECYCLE", 1800))
     db_pool_pre_ping: bool = field(default_factory=lambda: _bool_env("DB_POOL_PRE_PING", True))
-    cors_origins: list[str] = field(default_factory=lambda: _list_env("CORS_ORIGINS", ["http://localhost:5173"]))
+    cors_origins: list[str] = field(
+        default_factory=lambda: _list_env("CORS_ORIGINS", ["http://localhost:5173"])
+    )
     auto_create_tables: bool = field(default_factory=lambda: _bool_env("AUTO_CREATE_TABLES", False))
     email_from: str = field(default_factory=lambda: getenv("EMAIL_FROM", "JobAlert CI <bonjour@jobalert.ci>"))
     daily_collection_hour: int = field(default_factory=lambda: _int_env("DAILY_COLLECTION_HOUR", 6))
     daily_digest_hour: int = field(default_factory=lambda: _int_env("DAILY_DIGEST_HOUR", 8))
+    admin_api_key: str | None = field(default_factory=lambda: getenv("ADMIN_API_KEY") or None)
 
     @property
     def is_sqlite(self) -> bool:

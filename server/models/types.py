@@ -4,11 +4,10 @@ from sqlalchemy import Enum
 
 
 def enum_column(enum_cls: type[StrEnum]) -> Enum:
-    """Colonne enum portable PostgreSQL/SQLite.
+    """Colonne enum evolutive.
 
-    Pourquoi : on stocke les valeurs texte ('active', 'failed', etc.) avec une
-    contrainte CHECK au lieu d'un ENUM natif PostgreSQL. C'est plus simple à
-    faire évoluer par migration quand le produit ajoute un nouveau statut.
+    On stocke les valeurs texte avec une contrainte CHECK plutot qu'un ENUM
+    PostgreSQL natif. Ajouter un statut devient une migration simple.
     """
 
     return Enum(
@@ -18,5 +17,5 @@ def enum_column(enum_cls: type[StrEnum]) -> Enum:
         values_callable=lambda members: [member.value for member in members],
         create_constraint=True,
         name=f"{enum_cls.__name__.lower()}_values",
-        length=60,
+        length=80,
     )

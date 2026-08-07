@@ -1,82 +1,116 @@
-from core.config import get_settings
+from __future__ import annotations
+
+from sqlalchemy import select
+
 from db.session import session_scope
-from models import ContractType, EducationLevel, ExperienceLevel, Filiere, Location, Source
+from models import ContractType, EducationLevel, ExperienceLevel, Filiere, FiliereKeyword, Source
+from models.enums import SourceStatus
+from services.normalization import normalize_text, slugify
 
 SOURCES = [
-    {"code": "emploidakar", "name": "EmploiDakar CI", "slug": "emploidakar", "base_url": "https://www.emploidakar.com"},
-    {"code": "goafrica", "name": "Go Africa Online", "slug": "goafrica", "base_url": "https://www.goafricaonline.com"},
-    {"code": "novojob", "name": "Novojob Cote d'Ivoire", "slug": "novojob", "base_url": "https://www.novojob.com"},
-    {"code": "linkedin", "name": "LinkedIn", "slug": "linkedin", "base_url": "https://www.linkedin.com",
-     "anti_scraping_level": 5},
+    ("emploi-dakar", "EmploiDakar CI", "https://www.emploidakar.com", 10, "ED"),
+    ("goafrica", "Go Africa Online", "https://www.goafricaonline.com", 20, "GA"),
+    ("novojob", "Novojob", "https://www.novojob.com", 30, "NJ"),
+    ("linkedin", "LinkedIn", "https://www.linkedin.com", 40, "in"),
 ]
 
 FILIERES = [
-    {"code": "tech_dev", "label": "Tech & Developpement", "slug": "tech-dev", "sort_order": 10},
-    {"code": "data_ia", "label": "Data & IA", "slug": "data-ia", "sort_order": 20},
-    {"code": "marketing", "label": "Marketing & Communication", "slug": "marketing", "sort_order": 30},
-    {"code": "finance", "label": "Finance & Comptabilite", "slug": "finance", "sort_order": 40},
-    {"code": "rh", "label": "Ressources humaines", "slug": "rh", "sort_order": 50},
-    {"code": "btp", "label": "BTP & Industrie", "slug": "btp-industrie", "sort_order": 60},
-    {"code": "commerce", "label": "Commerce & Vente", "slug": "commerce-vente", "sort_order": 70},
-    {"code": "support", "label": "Support & Administration", "slug": "support-administration", "sort_order": 80},
+    ("tech-dev", "Tech & Dev", "sky", ["developpeur", "python", "react", "data", "cloud"]),
+    ("marketing-com", "Marketing & Communication", "fuchsia", ["marketing", "communication", "community manager"]),
+    ("commercial-vente", "Commercial & Vente", "orange", ["commercial", "vente", "business developer"]),
+    ("comptabilite-finance", "Comptabilite & Finance", "emerald", ["comptable", "finance", "audit"]),
+    ("ressources-humaines", "Ressources Humaines", "violet", ["rh", "recrutement", "paie"]),
+    ("btp-genie-civil", "BTP & Genie Civil", "amber", ["btp", "genie civil", "chantier"]),
+    ("logistique-transport", "Logistique & Transport", "cyan", ["logistique", "transport", "supply chain"]),
+    ("sante-medical", "Sante & Medical", "rose", ["sante", "medical", "infirmier"]),
+    ("administration", "Administration", "slate", ["assistant", "administratif", "office"]),
+    ("education-formation", "Education & Formation", "lime", ["enseignant", "formation", "pedagogie"]),
+    ("hotellerie-restauration", "Hotellerie & Restauration", "red", ["hotel", "restaurant", "cuisine"]),
+    ("agriculture-agrobusiness", "Agriculture & Agrobusiness", "green", ["agriculture", "agro", "elevage"]),
+    ("securite-gardiennage", "Securite & Gardiennage", "zinc", ["securite", "gardiennage", "hse"]),
 ]
 
-CONTRACT_TYPES = [
-    {"code": "cdi", "label": "CDI", "sort_order": 10},
-    {"code": "cdd", "label": "CDD", "sort_order": 20},
-    {"code": "stage", "label": "Stage", "sort_order": 30},
-    {"code": "freelance", "label": "Freelance", "sort_order": 40},
-]
-
-EXPERIENCE_LEVELS = [
-    {"code": "junior", "label": "Junior", "min_years": 0, "max_years": 2, "sort_order": 10},
-    {"code": "confirme", "label": "Confirme", "min_years": 3, "max_years": 5, "sort_order": 20},
-    {"code": "senior", "label": "Senior", "min_years": 6, "max_years": None, "sort_order": 30},
-]
-
-EDUCATION_LEVELS = [
-    {"code": "bac", "label": "Bac", "rank": 1, "sort_order": 10},
-    {"code": "bac_2", "label": "Bac+2", "rank": 2, "sort_order": 20},
-    {"code": "bac_3", "label": "Bac+3", "rank": 3, "sort_order": 30},
-    {"code": "bac_5", "label": "Bac+5", "rank": 5, "sort_order": 40},
-]
-
-LOCATIONS = [
-    {"city": "Abidjan", "label": "Abidjan", "normalized_label": "abidjan"},
-    {"city": "Yamoussoukro", "label": "Yamoussoukro", "normalized_label": "yamoussoukro"},
-    {"city": "Remote", "label": "Remote", "normalized_label": "remote", "is_remote": True},
-]
+CONTRACTS = [("cdi", "CDI"), ("cdd", "CDD"), ("stage", "Stage"), ("mission", "Mission"), ("alternance", "Alternance")]
+EXPERIENCES = [("debutant", "Debutant", 0, 1), ("1-3", "1-3 ans", 1, 3), ("3-5", "3-5 ans", 3, 5), ("5-plus", "5 ans+", 5, None)]
+EDUCATION = [("bac", "Bac", 1), ("bac-2", "Bac+2", 2), ("bac-3", "Bac+3", 3), ("bac-5", "Bac+5", 5), ("bac-8", "Bac+8", 8)]
 
 
-def upsert_by_code(db, model, rows):
-    for row in rows:
-        obj = db.query(model).filter_by(code=row["code"]).one_or_none()
-        if obj is None:
-            db.add(model(**row))
-        else:
-            for key, value in row.items():
-                setattr(obj, key, value)
+def get_or_create(db, model, **values):
+    item = db.scalar(select(model).where(model.code == values["code"]))
+    if item is None:
+        item = model(**values)
+        db.add(item)
+        db.flush()
+    else:
+        for key, value in values.items():
+            setattr(item, key, value)
+    return item
 
 
-def seed_locations(db):
-    for row in LOCATIONS:
-        obj = db.query(Location).filter_by(normalized_label=row["normalized_label"]).one_or_none()
-        if obj is None:
-            db.add(Location(**row))
-        else:
-            for key, value in row.items():
-                setattr(obj, key, value)
+def seed() -> None:
+    with session_scope() as db:
+        for order, (code, name, base_url, priority, short_code) in enumerate(SOURCES, start=1):
+            get_or_create(
+                db,
+                Source,
+                code=code,
+                name=name,
+                slug=slugify(code),
+                base_url=base_url,
+                status=SourceStatus.ACTIVE,
+                priority=priority,
+                short_code=short_code,
+                is_primary=order <= 3,
+            )
+
+        for order, (code, label, hue, keywords) in enumerate(FILIERES, start=1):
+            filiere = get_or_create(
+                db,
+                Filiere,
+                code=code,
+                label=label,
+                slug=slugify(code),
+                hue=hue,
+                sort_order=order,
+                is_active=True,
+            )
+            for weight, keyword in enumerate(keywords, start=1):
+                normalized = normalize_text(keyword)
+                exists = db.scalar(
+                    select(FiliereKeyword).where(
+                        FiliereKeyword.filiere_id == filiere.id,
+                        FiliereKeyword.normalized_keyword == normalized,
+                    )
+                )
+                if exists is None:
+                    db.add(
+                        FiliereKeyword(
+                            filiere_id=filiere.id,
+                            keyword=keyword,
+                            normalized_keyword=normalized,
+                            weight=max(1, 100 - weight),
+                        )
+                    )
+
+        for order, (code, label) in enumerate(CONTRACTS, start=1):
+            get_or_create(db, ContractType, code=code, label=label, sort_order=order, is_active=True)
+
+        for order, (code, label, min_years, max_years) in enumerate(EXPERIENCES, start=1):
+            get_or_create(
+                db,
+                ExperienceLevel,
+                code=code,
+                label=label,
+                min_years=min_years,
+                max_years=max_years,
+                sort_order=order,
+                is_active=True,
+            )
+
+        for order, (code, label, rank) in enumerate(EDUCATION, start=1):
+            get_or_create(db, EducationLevel, code=code, label=label, rank=rank, sort_order=order, is_active=True)
 
 
 if __name__ == "__main__":
-    # Seed idempotent : on peut le relancer sans dupliquer les referentiels.
-    settings = get_settings()
-    print(f"Base cible: {settings.database_url}")
-    with session_scope() as db:
-        upsert_by_code(db, Source, SOURCES)
-        upsert_by_code(db, Filiere, FILIERES)
-        upsert_by_code(db, ContractType, CONTRACT_TYPES)
-        upsert_by_code(db, ExperienceLevel, EXPERIENCE_LEVELS)
-        upsert_by_code(db, EducationLevel, EDUCATION_LEVELS)
-        seed_locations(db)
-    print("Référentiels insérés ou mis a jour.")
+    seed()
+    print("Referentiels de base inseres.")

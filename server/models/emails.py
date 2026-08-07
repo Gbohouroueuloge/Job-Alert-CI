@@ -10,10 +10,10 @@ from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from models.enums import DigestStatus, EmailAttemptStatus
 from models.types import enum_column
 
-"""Domaine emails.
+"""Historique des digests email.
 
-Distinguer le digest, ses offres et ses tentatives d'envoi
-permet de rejouer un email en échec sans récréer toute la selection d'offres.
+Chaque digest garde sa selection d'offres et ses tentatives d'envoi. On peut
+donc rejouer un echec sans recalculer le contenu envoye au candidat.
 """
 
 if TYPE_CHECKING:
@@ -25,17 +25,11 @@ if TYPE_CHECKING:
 class EmailDigest(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "email_digests"
 
-    subscriber_id: Mapped[str] = mapped_column(ForeignKey("subscribers.id", ondelete="CASCADE"), index=True,
-                                               nullable=False)
-    scrape_run_id: Mapped[str | None] = mapped_column(ForeignKey("scrape_runs.id", ondelete="SET NULL"), index=True,
-                                                      nullable=True)
+    subscriber_id: Mapped[str] = mapped_column(ForeignKey("subscribers.id", ondelete="CASCADE"), index=True, nullable=False)
+    scrape_run_id: Mapped[str | None] = mapped_column(ForeignKey("scrape_runs.id", ondelete="SET NULL"), index=True, nullable=True)
     digest_date: Mapped[date] = mapped_column(Date, index=True, nullable=False)
-    scheduled_for: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), index=True, nullable=False
-    )
-    status: Mapped[DigestStatus] = mapped_column(
-        enum_column(DigestStatus), default=DigestStatus.QUEUED, index=True, nullable=False
-    )
+    scheduled_for: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True, nullable=False)
+    status: Mapped[DigestStatus] = mapped_column(enum_column(DigestStatus), default=DigestStatus.QUEUED, index=True, nullable=False)
     subject: Mapped[str | None] = mapped_column(String(255), nullable=True)
     offer_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     skipped_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -44,16 +38,12 @@ class EmailDigest(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     payload_preview: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     subscriber: Mapped["Subscriber"] = relationship(back_populates="digests")
-    scrape_run: Mapped["ScrapeRun | None"] = relationship()
+    scrape_run: Mapped["ScrapeRun | None"] = relationship(back_populates="digests")
     offer_links: Mapped[list["EmailDigestOffer"]] = relationship(
-        back_populates="digest",
-        cascade="all, delete-orphan",
-        order_by="EmailDigestOffer.position",
+        back_populates="digest", cascade="all, delete-orphan", order_by="EmailDigestOffer.position"
     )
     attempts: Mapped[list["EmailDeliveryAttempt"]] = relationship(
-        back_populates="digest",
-        cascade="all, delete-orphan",
-        order_by="EmailDeliveryAttempt.attempt_no",
+        back_populates="digest", cascade="all, delete-orphan", order_by="EmailDeliveryAttempt.attempt_no"
     )
 
     __table_args__ = (
@@ -65,12 +55,8 @@ class EmailDigest(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 class EmailDigestOffer(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "email_digest_offers"
 
-    digest_id: Mapped[str] = mapped_column(
-        ForeignKey("email_digests.id", ondelete="CASCADE"), index=True, nullable=False
-    )
-    offer_id: Mapped[str] = mapped_column(
-        ForeignKey("job_offers.id", ondelete="CASCADE"), index=True, nullable=False
-    )
+    digest_id: Mapped[str] = mapped_column(ForeignKey("email_digests.id", ondelete="CASCADE"), index=True, nullable=False)
+    offer_id: Mapped[str] = mapped_column(ForeignKey("job_offers.id", ondelete="CASCADE"), index=True, nullable=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
 
     digest: Mapped["EmailDigest"] = relationship(back_populates="offer_links")
@@ -86,9 +72,7 @@ class EmailDigestOffer(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 class EmailDeliveryAttempt(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "email_delivery_attempts"
 
-    digest_id: Mapped[str] = mapped_column(
-        ForeignKey("email_digests.id", ondelete="CASCADE"), index=True, nullable=False
-    )
+    digest_id: Mapped[str] = mapped_column(ForeignKey("email_digests.id", ondelete="CASCADE"), index=True, nullable=False)
     attempt_no: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[EmailAttemptStatus] = mapped_column(
         enum_column(EmailAttemptStatus), default=EmailAttemptStatus.PENDING, index=True, nullable=False

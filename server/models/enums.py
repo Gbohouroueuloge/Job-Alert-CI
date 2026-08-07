@@ -1,16 +1,12 @@
 from enum import StrEnum
 
-"""Enums metier partages par ORM et les schemas API.
-
-Garder ces statuts dans un seul fichier évite les divergences entre
-la base, les routes FastAPI, les jobs de scraping et les futurs formulaires
-admin.
-"""
+"""Enums metier partages par ORM, services et schemas API."""
 
 
 class SourceStatus(StrEnum):
     ACTIVE = "active"
     PAUSED = "paused"
+    ERROR = "error"
     DISABLED = "disabled"
 
 
@@ -25,9 +21,16 @@ class ScrapeRunStatus(StrEnum):
 class JobOfferStatus(StrEnum):
     ACTIVE = "active"
     EXPIRED = "expired"
+    FILLED = "filled"
     ARCHIVED = "archived"
     DUPLICATE = "duplicate"
     HIDDEN = "hidden"
+
+
+class JobOfferOrigin(StrEnum):
+    SCRAPING = "scraping"
+    MANUAL = "manual"
+    IMPORT = "import"
 
 
 class IngestionAction(StrEnum):
@@ -45,6 +48,12 @@ class SubscriberStatus(StrEnum):
     UNSUBSCRIBED = "unsubscribed"
     BOUNCED = "bounced"
     DELETED = "deleted"
+
+
+class NotificationChannel(StrEnum):
+    EMAIL = "email"
+    WHATSAPP = "whatsapp"
+    SMS = "sms"
 
 
 class TokenPurpose(StrEnum):
@@ -87,3 +96,19 @@ class ContactMessageStatus(StrEnum):
     REPLIED = "replied"
     CLOSED = "closed"
     SPAM = "spam"
+
+
+class AdminRole(StrEnum):
+    SUPER_ADMIN = "super_admin"
+    OFFER_MANAGER = "gestionnaire_offres"
+    USER_MANAGER = "gestionnaire_utilisateurs"
+    MODERATOR = "moderateur"
+
+
+class AdminAction(StrEnum):
+    CREATE = "creation"
+    UPDATE = "modification"
+    DELETE = "suppression"
+    SEND = "envoi"
+    LOGIN = "connexion"
+    SCRAPE = "scraping"

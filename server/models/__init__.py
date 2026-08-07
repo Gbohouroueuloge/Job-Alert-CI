@@ -1,13 +1,35 @@
-from models.content import Article, ArticleCategory, ContactMessage, ContentPage, FaqCategory, FaqItem
+from models.admin import AdminActionLog, Administrator, SiteSetting
+from models.content import (
+    ContactMessage,
+    ContentPage,
+    FaqCategory,
+    FaqItem,
+)
+from models.editorial import (
+    Article,
+    ArticleCategory,
+    ArticleKeyFigure,
+    ArticleSection,
+    ArticleSectionBlock,
+    ArticleSeries,
+    ArticleTakeaway,
+    ArticleViewLog,
+    DailyTip,
+    SeriesArticle,
+)
 from models.emails import EmailDeliveryAttempt, EmailDigest, EmailDigestOffer
 from models.enums import (
+    AdminAction,
+    AdminRole,
     ContactMessageStatus,
     ContentStatus,
     ContentType,
     DigestStatus,
     EmailAttemptStatus,
     IngestionAction,
+    JobOfferOrigin,
     JobOfferStatus,
+    NotificationChannel,
     ScrapeRunStatus,
     SourceStatus,
     SubscriberStatus,
@@ -26,6 +48,7 @@ from models.referentials import (
 )
 from models.scraping import ScrapeRun, SourceScrapeRun
 from models.subscriptions import (
+    SavedOffer,
     Subscriber,
     SubscriberContractPreference,
     SubscriberFiliere,
@@ -34,8 +57,18 @@ from models.subscriptions import (
 )
 
 __all__ = [
+    "AdminAction",
+    "AdminActionLog",
+    "AdminRole",
+    "Administrator",
     "Article",
     "ArticleCategory",
+    "ArticleKeyFigure",
+    "ArticleSection",
+    "ArticleSectionBlock",
+    "ArticleSeries",
+    "ArticleTakeaway",
+    "ArticleViewLog",
     "Company",
     "ContactMessage",
     "ContactMessageStatus",
@@ -43,6 +76,7 @@ __all__ = [
     "ContentStatus",
     "ContentType",
     "ContractType",
+    "DailyTip",
     "DigestStatus",
     "EducationLevel",
     "EmailAttemptStatus",
@@ -58,12 +92,17 @@ __all__ = [
     "IngestionAction",
     "JobOffer",
     "JobOfferDetail",
+    "JobOfferOrigin",
     "JobOfferStatus",
     "Location",
+    "NotificationChannel",
     "OfferFiliere",
     "OfferIngestionEvent",
+    "SavedOffer",
     "ScrapeRun",
     "ScrapeRunStatus",
+    "SeriesArticle",
+    "SiteSetting",
     "Source",
     "SourceScrapeRun",
     "SourceStatus",

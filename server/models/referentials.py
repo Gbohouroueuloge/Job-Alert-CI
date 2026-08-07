@@ -9,15 +9,16 @@ from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from models.enums import SourceStatus
 from models.types import enum_column
 
-"""Référentiels du produit.
+"""Referentiels stables du produit.
 
-Séparer sources, filières, niveaux et lieux évite de répeter
-des libelles libres dans les offres. Les filtres publics, le matching et les
-preferences d'abonnement restent ainsi cohérents dans le temps.
+Ces tables evitent les libelles libres dans les offres et les abonnements. Le
+matching, les filtres et les emails restent coherents meme quand les sources
+scrapees changent leur vocabulaire.
 """
 
 if TYPE_CHECKING:
     from models.jobs import Company, JobOffer, OfferFiliere
+    from models.scraping import SourceScrapeRun
     from models.subscriptions import Subscriber, SubscriberContractPreference, SubscriberFiliere
 
 
@@ -26,29 +27,29 @@ class Source(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     code: Mapped[str] = mapped_column(String(80), unique=True, index=True, nullable=False)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    slug: Mapped[str] = mapped_column(String(120), unique=True, index=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(140), unique=True, index=True, nullable=False)
     base_url: Mapped[str] = mapped_column(String(500), nullable=False)
     jobs_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    logo_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    logo_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     color_hex: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    short_code: Mapped[str | None] = mapped_column(String(8), nullable=True)
     status: Mapped[SourceStatus] = mapped_column(
-        enum_column(SourceStatus), default=SourceStatus.ACTIVE, nullable=False
+        enum_column(SourceStatus), default=SourceStatus.ACTIVE, index=True, nullable=False
     )
     priority: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
     supports_scraping: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     anti_scraping_level: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     default_scan_time: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     offers: Mapped[list["JobOffer"]] = relationship(back_populates="source")
     scrape_runs: Mapped[list["SourceScrapeRun"]] = relationship(back_populates="source")
 
     __table_args__ = (
         CheckConstraint("priority >= 0", name="source_priority_positive"),
-        CheckConstraint(
-            "anti_scraping_level >= 0 AND anti_scraping_level <= 5",
-            name="source_anti_scraping_level_range"
-        ),
+        CheckConstraint("anti_scraping_level >= 0 AND anti_scraping_level <= 5", name="source_anti_scraping_range"),
     )
 
 
@@ -57,8 +58,9 @@ class Filiere(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     code: Mapped[str] = mapped_column(String(120), unique=True, index=True, nullable=False)
     label: Mapped[str] = mapped_column(String(160), nullable=False)
-    slug: Mapped[str] = mapped_column(String(160), unique=True, index=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(180), unique=True, index=True, nullable=False)
     hue: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    icon_name: Mapped[str | None] = mapped_column(String(80), nullable=True)
     tagline: Mapped[str | None] = mapped_column(String(255), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
@@ -72,7 +74,7 @@ class Filiere(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     specialties: Mapped[list["FiliereSpecialty"]] = relationship(
         back_populates="filiere",
         cascade="all, delete-orphan",
-        order_by="FiliereSpecialty.sort_order",
+        order_by="FiliereSpecialty.sort_order, FiliereSpecialty.label",
     )
     companies: Mapped[list["Company"]] = relationship(back_populates="primary_filiere")
     offers: Mapped[list["JobOffer"]] = relationship(back_populates="primary_filiere")
@@ -146,7 +148,7 @@ class ExperienceLevel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __table_args__ = (
         CheckConstraint("min_years IS NULL OR min_years >= 0", name="experience_min_years_positive"),
-        CheckConstraint("max_years IS NULL OR max_years >= min_years", name="experience_max_after_min"),
+        CheckConstraint("max_years IS NULL OR min_years IS NULL OR max_years >= min_years", name="experience_max_after_min"),
     )
 
 

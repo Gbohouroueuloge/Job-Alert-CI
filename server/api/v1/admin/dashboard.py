@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from api.deps import get_db
+from api.deps import get_current_admin, get_db
 from models import JobOffer, JobOfferStatus, Source, Subscriber, SubscriberStatus
 from models.content import ContactMessage
 from models.emails import EmailDigest
@@ -11,7 +11,8 @@ from models.scraping import ScrapeRun
 from schemas.admin import DashboardOverviewRead
 from schemas.scraping import ScrapeRunRead
 
-router = APIRouter(prefix="/api/admin/dashboard", tags=["admin-dashboard"])
+# Accessible a tous les roles admin: c'est le point d'entree du back-office.
+router = APIRouter(prefix="/api/admin/dashboard", tags=["admin-dashboard"], dependencies=[Depends(get_current_admin)])
 
 
 @router.get("/overview", response_model=DashboardOverviewRead)

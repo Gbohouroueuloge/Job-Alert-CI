@@ -96,54 +96,6 @@ def _apply_offer_filters(
     return stmt
 
 
-@router.get("/stats", response_model=OfferStatsSummaryRead)
-def get_offer_stats(
-    db: Session = Depends(get_db),
-    new_since_days: int = Query(7, ge=1, le=3650),
-) -> OfferStatsSummaryRead:
-    since = datetime.utcnow().replace(tzinfo=None) - timedelta(days=new_since_days)
-    new_expr = func.coalesce(func.sum(case((JobOffer.first_seen_at >= since, 1), else_=0)), 0)
-    stmt = select(func.count(JobOffer.id), new_expr).where(*_public_filters())
-    total_offers, new_offers = db.execute(stmt).one()
-    return OfferStatsSummaryRead(total_offers=total_offers, new_offers=new_offers)
-
-
-@router.get("/stats/by-filiere", response_model=list[OfferStatsBucketRead])
-def get_offer_stats_by_filiere(db: Session = Depends(get_db), new_since_days: int = Query(7, ge=1, le=3650), limit: int = Query(50, ge=1, le=500)):
-    since = datetime.utcnow().replace(tzinfo=None) - timedelta(days=new_since_days)
-    new_expr = func.sum(case((JobOffer.first_seen_at >= since, 1), else_=0))
-    stmt = (
-        select(Filiere.id, Filiere.code, Filiere.label, func.count(JobOffer.id), new_expr)
-        .join(JobOffer, JobOffer.primary_filiere_id == Filiere.id)
-        .where(*_public_filters())
-        .group_by(Filiere.id, Filiere.code, Filiere.label, Filiere.sort_order)
-        .order_by(func.count(JobOffer.id).desc(), Filiere.sort_order)
-        .limit(limit)
-    )
-    return [
-        OfferStatsBucketRead(id=row[0], code=row[1], label=row[2], total_offers=row[3], new_offers=row[4])
-        for row in db.execute(stmt)
-    ]
-
-
-@router.get("/stats/by-source", response_model=list[OfferStatsBucketRead])
-def get_offer_stats_by_source(db: Session = Depends(get_db), new_since_days: int = Query(7, ge=1, le=3650), limit: int = Query(50, ge=1, le=500)):
-    since = datetime.utcnow().replace(tzinfo=None) - timedelta(days=new_since_days)
-    new_expr = func.sum(case((JobOffer.first_seen_at >= since, 1), else_=0))
-    stmt = (
-        select(Source.id, Source.code, Source.name, func.count(JobOffer.id), new_expr)
-        .join(JobOffer, JobOffer.source_id == Source.id)
-        .where(*_public_filters())
-        .group_by(Source.id, Source.code, Source.name, Source.priority)
-        .order_by(func.count(JobOffer.id).desc(), Source.priority)
-        .limit(limit)
-    )
-    return [
-        OfferStatsBucketRead(id=row[0], code=row[1], label=row[2], total_offers=row[3], new_offers=row[4])
-        for row in db.execute(stmt)
-    ]
-
-
 @router.get("", response_model=list[JobOfferRead])
 def list_offers(
     db: Session = Depends(get_db),

@@ -17,7 +17,7 @@ from models import (
     Location,
     Source,
 )
-from schemas.offers import OfferCreate
+from schemas.offers import OfferCreate, OfferUpdate
 from services.normalization import hash_offer, normalize_text, slugify
 
 
@@ -107,6 +107,55 @@ def create_offer(db: Session, payload: OfferCreate, admin_id: str | None = None)
         is_manual=True,
     )
     db.add(offer)
+    db.commit()
+    db.refresh(offer)
+    return offer
+
+
+def update_offer(db: Session, offer: JobOffer, payload: OfferUpdate) -> JobOffer:
+    """Applique une mise a jour partielle admin, avec les memes lookups que la creation."""
+
+    data = payload.model_dump(exclude_unset=True)
+
+    if "title" in data and data["title"] is not None:
+        offer.title = data["title"].strip()
+        offer.normalized_title = normalize_text(offer.title)
+
+    if "company_name" in data and data["company_name"] is not None:
+        offer.company = _get_or_create_company(db, data["company_name"])
+
+    if "filiere_code" in data:
+        filiere = _get_optional_by_code(db, Filiere, data["filiere_code"])
+        offer.primary_filiere_id = filiere.id if filiere else None
+
+    if "location_label" in data:
+        location = _get_or_create_location(db, data["location_label"])
+        offer.location_id = location.id if location else None
+
+    if "contract_type_code" in data:
+        contract_type = _get_optional_by_code(db, ContractType, data["contract_type_code"])
+        offer.contract_type_id = contract_type.id if contract_type else None
+
+    if "experience_level_code" in data:
+        experience_level = _get_optional_by_code(db, ExperienceLevel, data["experience_level_code"])
+        offer.experience_level_id = experience_level.id if experience_level else None
+
+    if "education_level_code" in data:
+        education_level = _get_optional_by_code(db, EducationLevel, data["education_level_code"])
+        offer.education_level_id = education_level.id if education_level else None
+
+    for field_name in ("source_url", "canonical_url", "published_at", "expires_at", "application_deadline_at", "visible_site"):
+        if field_name in data:
+            setattr(offer, field_name, data[field_name])
+
+    detail_fields = {"intro", "missions", "profile_requirements", "benefits", "tags"}
+    if detail_fields & data.keys():
+        if offer.detail is None:
+            offer.detail = JobOfferDetail(is_manual=offer.origin == JobOfferOrigin.MANUAL)
+        for field_name in detail_fields:
+            if field_name in data:
+                setattr(offer.detail, field_name, data[field_name])
+
     db.commit()
     db.refresh(offer)
     return offer

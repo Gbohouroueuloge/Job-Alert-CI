@@ -105,6 +105,13 @@ class Settings:
     daily_collection_hour: int = field(default_factory=lambda: _int_env("DAILY_COLLECTION_HOUR", 6))
     daily_digest_hour: int = field(default_factory=lambda: _int_env("DAILY_DIGEST_HOUR", 8))
     admin_api_key: str | None = field(default_factory=lambda: getenv("ADMIN_API_KEY") or None)
+    admin_jwt_secret: str = field(
+        default_factory=lambda: getenv("ADMIN_JWT_SECRET") or "dev-insecure-secret-change-me"
+    )
+    admin_jwt_access_minutes: int = field(default_factory=lambda: _int_env("ADMIN_JWT_ACCESS_MINUTES", 60))
+    admin_jwt_refresh_minutes: int = field(
+        default_factory=lambda: _int_env("ADMIN_JWT_REFRESH_MINUTES", 60 * 24 * 7)
+    )
 
     @property
     def is_sqlite(self) -> bool:

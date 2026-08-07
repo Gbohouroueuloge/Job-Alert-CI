@@ -33,9 +33,14 @@ class AdminLogin(BaseModel):
 
 class TokenRead(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     admin_id: str
     role: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(min_length=10)
 
 
 # ─── Administrator ───────────────────────────────────────
@@ -49,11 +54,16 @@ class AdminRead(TimestampRead):
     last_login_at: datetime | None = None
 
 
+AdminRoleLiteral = Literal[
+    "super_admin", "gestionnaire_offres", "gestionnaire_utilisateurs", "moderateur"
+]
+
+
 class AdminCreate(BaseModel):
     email: str = Field(min_length=5, max_length=320)
     password: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=2, max_length=180)
-    role: Literal["super_admin", "admin", "editor"] = "editor"
+    role: AdminRoleLiteral = "moderateur"
 
 
 class AdminUpdate(BaseModel):
@@ -63,7 +73,7 @@ class AdminUpdate(BaseModel):
 
 
 class AdminRoleUpdate(BaseModel):
-    role: Literal["super_admin", "admin", "editor"]
+    role: AdminRoleLiteral
 
 
 class AdminChangePassword(BaseModel):

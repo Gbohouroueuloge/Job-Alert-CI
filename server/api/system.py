@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 from api.deps import get_db
 from core.config import get_settings
 
-router = APIRouter(tags=["system"])
+routerSys = APIRouter(tags=["system"])
 
 
-@router.get("/health")
+@routerSys.get("/health")
 def healthcheck(db: Session = Depends(get_db)) -> dict[str, str]:
     """Sante applicative et disponibilite de la base."""
 
@@ -30,7 +30,11 @@ def healthcheck(db: Session = Depends(get_db)) -> dict[str, str]:
     }
 
 
-@router.get("/", methods=["GET", "HEAD"])
+@routerSys.get("/")
 def root() -> dict[str, str]:
     settings = get_settings()
     return {"message": "JobAlert CI API", "environment": settings.environment}
+
+@routerSys.head("/")
+def health() -> dict[str, str]:
+    return { "ok": True }

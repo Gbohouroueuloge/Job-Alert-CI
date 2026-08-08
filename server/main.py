@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.v1.router import api_router
+from api.system import routerSys
 from core.config import get_settings
 from db.session import init_db
 
@@ -36,15 +37,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(routerSys)
+
 # Toutes les routes passent par le router v1.
 app.include_router(api_router)
 
-
-@app.get("/", tags=["system"])
-async def root() -> dict[str, str]:
-    return {"message": "JobAlert CI API", "environment": settings.environment}
-
-
-@app.get("/health", tags=["system"])
-def healthcheck() -> dict[str, str]:
-    return {"status": "ok", "environment": settings.environment}

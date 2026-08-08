@@ -21,6 +21,8 @@ def healthcheck(db: Session = Depends(get_db)) -> dict[str, str]:
         database = "ready"
     except SQLAlchemyError:
         database = "unavailable"
+    except Exception:  # noqa: BLE001
+        database = "unavailable"
     return {
         "status": "ok" if database == "ready" else "degraded",
         "database": database,
@@ -28,7 +30,7 @@ def healthcheck(db: Session = Depends(get_db)) -> dict[str, str]:
     }
 
 
-@router.get("/")
+@router.get("/", methods=["GET", "HEAD"])
 def root() -> dict[str, str]:
     settings = get_settings()
     return {"message": "JobAlert CI API", "environment": settings.environment}
